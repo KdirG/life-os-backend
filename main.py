@@ -4,11 +4,10 @@ import base64
 import asyncio
 from typing import Optional, List, Dict
 import requests
-from fastapi import FastAPI, UploadFile, File, Form, BackgroundTasks, HTTPException, Header
+from fastapi import FastAPI, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
-import google.generativeai as genai
 from pywebpush import webpush, WebPushException
 
 # Çevresel değişkenleri yükle
@@ -26,7 +25,6 @@ app.add_middleware(
 )
 
 # Sistem Ayarları
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 GITHUB_REPO_OWNER = os.getenv("GITHUB_REPO_OWNER")
 GITHUB_REPO_NAME = os.getenv("GITHUB_REPO_NAME")
@@ -67,11 +65,6 @@ def ensure_vapid_keys():
 
 VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY = ensure_vapid_keys()
 
-if not GEMINI_API_KEY:
-    print("[UYARI] GEMINI_API_KEY tanımlanmamış. Gemini API entegrasyonu çalışmayacaktır.")
-else:
-    genai.configure(api_key=GEMINI_API_KEY, transport='rest')
-
 # Bellek içi görev kuyruğu (PC Node long-polling ile bu listeyi okur)
 pc_task_queue: List[Dict] = []
 
@@ -89,8 +82,9 @@ class ParsedIntent(BaseModel):
     extracted_text: str = Field(description="Ham ses veya metinden çözümlenen komut metni.")
     nutrition_items: Optional[List[FoodItem]] = Field(None, description="Tüketilen besinlerin listesi ve tahmini makro değerleri.")
     goal_query: Optional[str] = Field(None, description="Hedef takip güncellenecek veri detayı.")
+    updated_file_content: Optional[str] = Field(None, description="Güncellenmiş markdown dosya içeriği (Client-side tarafından hazırlanır).")
     pc_action: Optional[str] = Field(None, description="PC eylemi: 'steam_install', 'download_url', 'download_torrent'")
-    pc_payload: Optional[str] = Field(None, description="Steam AppID, indirme linki veya Torrent mıknatıs (magnet) linki.")
+    pc_payload: Optional[str] = Field(None, description="Steam AppID, indirme linki veya Torrent magnet linki.")
     custom_file_name: Optional[str] = Field(None, description="Dinamik oluşturulacak markdown dosyasının adı (örn: Su_Takibi.md)")
     custom_content: Optional[str] = Field(None, description="Dosyaya eklenecek markdown satırı (tarih ve saati içermelidir).")
 
@@ -149,7 +143,7 @@ def update_github_file(path: str, content: str, sha: Optional[str] = None, messa
 
 # --- ntfy.sh & Web Push Notification ---
 def send_push_notification(title: str, message: str):
-    """ntfy.sh (isteğe bağlı) ve tarayıcı native Web Push üzerinden telefona bildirim gönderir."""
+    """ntfy.sh ve tarayıcı native Web Push üzerinden telefona bildirim gönderir."""
     # 1. ntfy.sh Bildirimi (Opsiyonel)
     if NTFY_TOPIC:
         url = f"https://ntfy.sh/{NTFY_TOPIC}"
@@ -163,7 +157,7 @@ def send_push_notification(title: str, message: str):
         except Exception as e:
             print(f"[NTFY BİLDİRİM HATASI] {e}")
 
-    # 2. Native Web Push Bildirimi (ntfy kurmayanlar için doğrudan APK/Tarayıcıya gider)
+    # 2. Native Web Push Bildirimi
     if not VAPID_PRIVATE_KEY:
         print("[WEB PUSH] VAPID private key eksik, web push gönderilmedi.")
         return
@@ -206,114 +200,11 @@ def send_push_notification(title: str, message: str):
         except Exception as e:
             print(f"[WEB PUSH] Temizleme hatası: {e}")
 
-# --- Gemini API İşleme ---
-async def analyze_input_with_gemini(text: Optional[str] = None, audio_bytes: Optional[bytes] = None) -> ParsedIntent:
-    """Ses veya metin girdisini Gemini'a gönderip yapılandırılmış JSON çıktısı alır."""
-    if not GEMINI_API_KEY:
-        raise HTTPException(status_code=500, detail="Gemini API Anahtarı eksik.")
-        
-    system_instruction = """
-    Sen bir Kişisel Asistansın. Kullanıcı girdisini analiz etmeli ve niyetine göre uygun JSON yapısını doldurmalısın.
-    
-    Niyetler:
-    1. 'nutrition': Kullanıcı yemek yediğini beyan ettiğinde. Tüketilen yiyecekleri ayıkla ve Gemini bilgi dağarcığına göre gramaja dayalı olarak kalori (kcal), protein (g), yağ (g) ve karbonhidrat (g) değerlerini tahmin et. 'nutrition_items' listesini doldur.
-    2. 'goal_update': Kullanıcı spor, ders veya hedeflerini tamamladığında.
-    3. 'pc_command': Kullanıcı bilgisayarda bir şey indirmek (URL, Torrent) veya Steam oyunu yüklemek istediğinde. Eylemi ve link/AppID parametresini doldur.
-    4. 'custom_log': Diğer kategoriler (Su içme, kitap okuma vb.). Uygun dosya adını (örn. Su_Takibi.md) ve eklenecek markdown satırını oluştur.
-    """
-    
-    model = genai.GenerativeModel(
-        model_name="gemini-2.5-flash",
-        system_instruction=system_instruction
-    )
-    
-    gemini_schema = {
-        "type": "OBJECT",
-        "properties": {
-            "intent": {
-                "type": "STRING",
-                "description": "Niyet sınıfı: 'nutrition', 'goal_update', 'pc_command', 'custom_log'"
-            },
-            "extracted_text": {
-                "type": "STRING",
-                "description": "Ham ses veya metinden çözümlenen komut metni."
-            },
-            "nutrition_items": {
-                "type": "ARRAY",
-                "items": {
-                    "type": "OBJECT",
-                    "properties": {
-                        "name": {"type": "STRING", "description": "Besin adı (örn. Tavuk Göğsü)"},
-                        "weight_g": {"type": "NUMBER", "description": "Gram veya adet cinsinden miktar"},
-                        "calories": {"type": "NUMBER", "description": "Tahmin edilen kalori (kcal)"},
-                        "protein": {"type": "NUMBER", "description": "Tahmin edilen protein (g)"},
-                        "fat": {"type": "NUMBER", "description": "Tahmin edilen yağ (g)"},
-                        "carbs": {"type": "NUMBER", "description": "Tahmin edilen karbonhidrat (g)"}
-                    },
-                    "required": ["name", "weight_g", "calories", "protein", "fat", "carbs"]
-                },
-                "description": "Tüketilen besinlerin listesi ve tahmini makro değerleri."
-            },
-            "goal_query": {
-                "type": "STRING",
-                "description": "Hedef takip güncellenecek veri detayı."
-            },
-            "pc_action": {
-                "type": "STRING",
-                "description": "PC eylemi: 'steam_install', 'download_url', 'download_torrent'"
-            },
-            "pc_payload": {
-                "type": "STRING",
-                "description": "Steam AppID, indirme linki veya Torrent magnet linki."
-            },
-            "custom_file_name": {
-                "type": "STRING",
-                "description": "Dinamik oluşturulacak markdown dosyasının adı (örn: Su_Takibi.md)"
-            },
-            "custom_content": {
-                "type": "STRING",
-                "description": "Dosyaya eklenecek markdown satırı (tarih ve saati içermelidir)."
-            }
-        },
-        "required": ["intent", "extracted_text"]
-    }
-    
-    contents = []
-    if audio_bytes:
-        contents.append({
-            "mime_type": "audio/webm",
-            "data": audio_bytes
-        })
-        contents.append("Yukarıdaki ses kaydını çözümle, besin makrolarını tahmin et ve niyete göre yapılandırılmış JSON çıktısı ver.")
-    else:
-        contents.append(f"Kullanıcı Girdisi: '{text}'. Çözümle, besin makrolarını tahmin et ve JSON çıktısı ver.")
-        
-    try:
-        response = model.generate_content(
-            contents,
-            generation_config=genai.GenerationConfig(
-                response_mime_type="application/json",
-                response_schema=gemini_schema
-            )
-        )
-        return ParsedIntent.model_validate_json(response.text)
-    except Exception as e:
-        print(f"[GEMINI API HATASI] {e}")
-        raise HTTPException(status_code=500, detail=f"Gemini işleme hatası: {str(e)}")
-
 # --- API Uç Noktaları ---
 
 @app.post("/api/process")
-async def process_user_input(
-    text: Optional[str] = Form(None),
-    audio: Optional[UploadFile] = File(None)
-):
-    """Hem ses hem metin girdilerini karşılayan ve işleyen ana API ucu."""
-    if not text and not audio:
-        raise HTTPException(status_code=400, detail="Herhangi bir ses veya metin girdisi gönderilmedi.")
-        
-    audio_data = await audio.read() if audio else None
-    result = await analyze_input_with_gemini(text=text, audio_bytes=audio_data)
+async def process_user_input(result: ParsedIntent):
+    """Telefon tarafından Gemini ile çözümlenmiş hazır JSON nesnesini alır ve işler."""
     
     if result.intent == "nutrition":
         if not result.nutrition_items:
@@ -384,22 +275,13 @@ async def process_user_input(
         return {"status": "success", "intent": "nutrition", "data": result.nutrition_items}
         
     elif result.intent == "goal_update":
+        if not result.updated_file_content:
+            raise HTTPException(status_code=400, detail="Güncellenmiş hedef belgesi bulunamadı.")
+            
         path = "Hedefler.md"
-        content, sha = get_github_file(path)
+        _, sha = get_github_file(path)
         
-        model = genai.GenerativeModel("gemini-2.5-flash")
-        prompt = f"""
-        Aşağıdaki 'Hedefler.md' markdown belgesini, kullanıcının şu bildirimi doğrultusunda güncelle: '{result.goal_query}'.
-        Sadece tamamlanan hedefleri `[ ]` durumundan `[x]` durumuna getir ve yanına varsa süreyi/açıklamayı ekle.
-        Belgenin yapısını veya diğer satırları asla bozma. Sadece güncellenmiş markdown dosya içeriğini düz metin olarak döndür.
-        
-        Mevcut Belge:
-        {content}
-        """
-        response = model.generate_content(prompt)
-        new_content = response.text.replace("```markdown", "").replace("```", "").strip()
-        
-        update_github_file(path, new_content, sha, message=f"Hedef güncellendi: {result.goal_query}")
+        update_github_file(path, result.updated_file_content, sha, message=f"Hedef güncellendi: {result.goal_query}")
         send_push_notification("Life OS Hedef Güncelleme", f"Hedef güncellendi: {result.goal_query}")
         return {"status": "success", "intent": "goal_update"}
         
@@ -434,7 +316,15 @@ async def process_user_input(
         send_push_notification("Life OS Özel Log", f"{path} dosyasına veri yazıldı.")
         return {"status": "success", "intent": "custom_log", "file": path}
         
-    return {"status": "unknown", "raw_result": result}
+    return {"status": "unknown"}
+
+@app.get("/api/file/{filename}")
+def get_file_content(filename: str):
+    """GitHub'dan belirtilen dosyanın içeriğini okur (PWA istemcisinin alabilmesi için)."""
+    if filename not in ["Hedefler.md", "Yemek_Log.md"]:
+        raise HTTPException(status_code=403, detail="Erişim engellendi.")
+    content, _ = get_github_file(filename)
+    return {"content": content}
 
 # --- PWA Web Push Abone Olma Endpoint'leri ---
 
@@ -476,32 +366,37 @@ def update_pc_task_status(task_id: str, payload: Dict):
             return {"status": "updated"}
     raise HTTPException(status_code=404, detail="Görev bulunamadı.")
 
-# --- 3 Saatte Bir Çalışacak Durum Raporlama Mantığı ---
+# --- 3 Saatte Bir Çalışacak Durum Raporlama Mantığı (Gemini Bağımsız) ---
 def run_daily_report_logic():
-    """Yemek günlüklerini analiz eden ve bildirim gönderen ana kümülatif raporlama mantığı."""
+    """Yemek günlüklerini analiz eden ve yerel makro durumunu bildiren yerel python mantığı."""
     try:
         content, _ = get_github_file("Yemek_Log.md")
         import datetime
         today_str = datetime.date.today().isoformat()
         
         if today_str in content:
-            model = genai.GenerativeModel("gemini-2.5-flash")
-            prompt = f"""
-            Aşağıdaki yemek günlüğünden sadece bugünün ({today_str}) verilerini analiz et.
-            Toplam alınan kaloriyi, protein, yağ ve karbonhidrat değerlerini hesapla.
-            Kullanıcıya güler yüzlü, motivasyon verici 1-2 cümlelik durum raporu hazırla.
-            Örn: 'Bugün 1200 kalori aldınız, hedefe 40g protein kaldı!'
+            import re
+            parts = content.split(f"## {today_str}")
+            rest = parts[1]
+            body_parts = rest.split("---")
+            total_text = body_parts[1] if len(body_parts) > 1 else ""
             
-            Yemek Günlüğü:
-            {content}
-            """
-            response = model.generate_content(prompt)
-            report_text = response.text.strip()
+            old_cal = re.findall(r"Günlük Toplam:\*\*\s*([\d\.]+)\s*kcal", total_text)
+            old_prot = re.findall(r"Protein:\s*([\d\.]+)g", total_text)
+            old_fat = re.findall(r"Yağ:\s*([\d\.]+)g", total_text)
+            old_carb = re.findall(r"Karbonhidrat:\s*([\d\.]+)g", total_text)
+            
+            cal = float(old_cal[0]) if old_cal else 0.0
+            prot = float(old_prot[0]) if old_prot else 0.0
+            fat = float(old_fat[0]) if old_fat else 0.0
+            carb = float(old_carb[0]) if old_carb else 0.0
+            
+            report_text = f"Bugün toplam {cal:.0f} kalori aldınız.\nMakrolar: Protein {prot:.0f}g, Yağ {fat:.0f}g, Karbonhidrat {carb:.0f}g."
             send_push_notification("Life OS Günlük Makro Durumu", report_text)
-            print("[CRON] Rapor başarıyla push edildi.")
+            print("[CRON] Durum raporu başarıyla gönderildi.")
         else:
             send_push_notification("Life OS Hatırlatıcı", "Bugün henüz hiçbir yemek logu girmediniz. Beslenmenizi takip etmeyi unutmayın!")
-            print("[CRON] Yemek logu bulunamadığı için hatırlatıcı gönderildi.")
+            print("[CRON] Yemek logu bulunmadığı için hatırlatıcı gönderildi.")
     except Exception as e:
         print(f"[CRON HATA] Rapor gönderilemedi: {e}")
 
