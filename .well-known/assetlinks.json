@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "app.vercel.life_os_seven_sable.twa",
+        "sha256_cert_fingerprints": ["3A:F3:F2:6C:88:BB:90:E9:C5:D6:04:F7:D2:FE:71:91:F7:86:54:5F:64:23:CC:D6:5D:D6:EF:17:F7:88:A3:CC"]
+      }
+    }]

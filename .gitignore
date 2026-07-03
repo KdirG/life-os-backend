@@ -1,0 +1,7 @@
+.env
+__pycache__/
+.vercel/
+Subscribers.json
+*.log
+.vercelignore
+vercel.json

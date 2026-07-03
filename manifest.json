@@ -1,0 +1,19 @@
+{
+  "name": "Life OS Assistant",
+  "short_name": "LifeOS",
+  "description": "Kişisel Yapay Zeka Yaşam ve Otomasyon Asistanı",
+  "start_url": "/index.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3249/3249915.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
