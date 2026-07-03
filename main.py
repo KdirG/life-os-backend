@@ -70,7 +70,7 @@ VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY = ensure_vapid_keys()
 if not GEMINI_API_KEY:
     print("[UYARI] GEMINI_API_KEY tanımlanmamış. Gemini API entegrasyonu çalışmayacaktır.")
 else:
-    genai.configure(api_key=GEMINI_API_KEY)
+    genai.configure(api_key=GEMINI_API_KEY, transport='rest')
 
 # Bellek içi görev kuyruğu (PC Node long-polling ile bu listeyi okur)
 pc_task_queue: List[Dict] = []
