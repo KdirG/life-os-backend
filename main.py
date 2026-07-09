@@ -321,7 +321,7 @@ async def process_user_input(result: ParsedIntent):
 @app.get("/api/file/{filename}")
 def get_file_content(filename: str):
     """GitHub'dan belirtilen dosyanın içeriğini okur (PWA istemcisinin alabilmesi için)."""
-    if filename not in ["Hedefler.md", "Yemek_Log.md"]:
+    if filename not in ["Hedefler.md", "Yemek_Log.md", "Aliskanliklar.md", "Mufredat.md"]:
         raise HTTPException(status_code=403, detail="Erişim engellendi.")
     content, _ = get_github_file(filename)
     return {"content": content}
@@ -333,7 +333,7 @@ class FileUpdateModel(BaseModel):
 @app.post("/api/file/{filename}")
 def save_file_content(filename: str, payload: FileUpdateModel):
     """GitHub'daki dosya içeriğini doğrudan günceller (PWA'den gelen düzenleme/silmeler için)."""
-    if filename not in ["Hedefler.md", "Yemek_Log.md"]:
+    if filename not in ["Hedefler.md", "Yemek_Log.md", "Aliskanliklar.md", "Mufredat.md"]:
         raise HTTPException(status_code=403, detail="Erişim engellendi.")
     _, sha = get_github_file(filename)
     success = update_github_file(filename, payload.content, sha, message=payload.message)
@@ -342,6 +342,10 @@ def save_file_content(filename: str, payload: FileUpdateModel):
     
     if filename == "Yemek_Log.md":
         send_push_notification("Life OS Güncelleme 📝", "Yemek günlüğü başarıyla güncellendi.")
+    elif filename == "Aliskanliklar.md":
+        send_push_notification("Alışkanlık Güncellendi ✅", "Günlük alışkanlık durumunuz kaydedildi.")
+    elif filename == "Mufredat.md":
+        send_push_notification("Müfredat Güncellendi 📚", "Ders çalışma müfredatınız güncellendi.")
         
     return {"status": "success"}
 
