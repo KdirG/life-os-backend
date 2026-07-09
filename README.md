@@ -1,73 +1,87 @@
-# Kişisel AI Life OS ve Otomasyon Asistanı
+# Personal AI Life OS and Automation Assistant
 
-Bu proje, $0 bütçe ile bulut üzerinde çalışan bir backend, mobil öncelikli PWA arayüzü, GitHub üzerinden senkronize olan Obsidian veritabanı ve yerel bilgisayarınızda çalışan bir otomasyon istemcisinden oluşan kişisel bir işletim sistemi (Life OS) altyapısı sunar.
+This project provides a personal Life OS infrastructure consisting of a FastAPI backend running on a cloud server, a mobile-first Progressive Web App (PWA) client interface, a markdown database synced via GitHub with Obsidian, and a local automation agent running on your computer.
 
-## 🚀 Proje Mimarisi
+## Project Architecture
 
-1. **Beyin (Backend - FastAPI):** FastAPI ile yazılmıştır. Render.com veya Railway.app gibi platformların ücretsiz katmanında 7/24 çalışabilir. Google Gemini 2.5 Flash API ile entegre çalışır.
-2. **Arayüz (Frontend - PWA):** Glassmorphic tasarıma sahip saf HTML5/JS ve Service Worker barındıran telefona yüklenebilir bir PWA arayüzüdür. GitHub Pages veya Netlify/Vercel üzerinde ücretsiz barındırılabilir.
-3. **Veritabanı (Obsidian - GitHub):** Verileriniz doğrudan GitHub reposundaki markdown (`.md`) dosyalarına yazılır. Bu repoyu bilgisayarınızdaki Obsidian ile eşleyerek tüm verilere lokalde sahip olabilirsiniz.
-4. **Otomasyon (PC Node):** Bilgisayarınızda çalışan, uTorrent veya jDownloader gibi hantal programlara ihtiyaç duymadan torrent (libtorrent), video (yt-dlp) ve normal dosyaları indiren, Steam oyunlarını uzaktan yükleyen bir Python scriptidir.
+1. **Backend (FastAPI):** Hosts the API services, coordinates communication between modules, handles speech-to-text processing, and integrates with the Google Gemini API to parse natural language inputs.
+2. **Frontend (PWA):** A responsive, light-themed web interface built with standard HTML5 and JavaScript. It features an offline-first Service Worker, registers Native Web Push subscriptions, and can be installed directly onto mobile devices.
+3. **Database (Obsidian & GitHub):** All logs, goals, habits, curriculum study paths, and sport plans are stored as markdown files (.md) in your private GitHub repository, allowing complete local data ownership and seamless editing via Obsidian.
+4. **PC Node (Automation Client):** A lightweight Python script running on your local machine that listens for remote commands (e.g., download torrents, fetch media using yt-dlp, trigger Steam installations) and executes them locally.
 
 ---
 
-## 🛠️ Kurulum Adımları
+## Features and Modules
 
-### 1. Depo (Obsidian Vault) Hazırlığı
-- GitHub üzerinde yeni bir **private (özel)** repository oluşturun (örn: `MyLifeOSVault`).
-- İçerisine `Yemek_Log.md` ve `Hedefler.md` adında iki adet boş dosya oluşturup commit edin.
+### 1. Dietary and Macro Logging
+- Supports voice or text entry (e.g., "I ate 200g chicken breast and 100g rice").
+- Utilizes the Google Gemini model to compute nutrition metrics, write structured calorie/protein data logs, and automatically update Yemek_Log.md.
 
-### 2. Backend (FastAPI) Kurulumu
-1. Bu klasörü sunucunuza veya yerel bilgisayarınıza alın.
-2. `.env.example` dosyasının adını `.env` olarak değiştirin ve ilgili alanları doldurun:
-   - **GEMINI_API_KEY:** [Google AI Studio](https://aistudio.google.com/) üzerinden ücretsiz API anahtarı alın.
-   - **GITHUB_TOKEN:** GitHub Developer Settings -> Personal Access Tokens (Classic) kısmından `repo` yetkisine sahip bir token oluşturun.
-   - **GITHUB_REPO_OWNER / NAME:** GitHub kullanıcı adınız ve oluşturduğunuz reponun adı.
-   - **NTFY_TOPIC:** Bildirimlerin gelmesini istediğiniz ntfy.sh kanalı (örn: `life_os_mysecret_channel`).
-3. Gerekli kütüphaneleri kurun:
+### 2. Habit Tracker
+- Interactive checkboxes that track daily streaks.
+- Synchronizes habit completions with Aliskanliklar.md.
+
+### 3. Study and Curriculum Planner
+- Track study topics, syllabus modules, and course progress percentages.
+- Organize subjects with collapsible accordion interfaces.
+- Synchronizes with Mufredat.md.
+
+### 4. Weekly Workout Plan
+- Create daily training schedules, browse exercises, and track workouts.
+- Pulls exercise descriptions, target muscles, and equipment data from the yuhonas/free-exercise-db database.
+- Displays preloaded start-and-end pose alternating animations.
+- Launches one-click YouTube tutorial video searches for any exercise.
+- Synchronizes with Spor.md.
+
+### 5. Nutrition & Calorie Targets
+- Configure weekly calorie and protein intake limits.
+- Automatically synchronizes targets across multiple browsers and devices using Hedefler.md as a cloud database.
+
+### 6. Remote PC Automation
+- Remotely queue downloads and PC automation tasks from the mobile assistant interface.
+- Executes torrent downloads (via libtorrent) and video fetching (via yt-dlp) directly on your local computer.
+
+### 7. Multi-User Integration
+- Allows multiple users to use the same FastAPI backend independently.
+- Configurable GitHub Personal Access Token (PAT), username, and repository name settings inside the client interface, passing parameters via custom request headers to route actions to the user's personal vault.
+
+---
+
+## Installation Steps
+
+### 1. GitHub Vault Setup
+- Create a private GitHub repository (e.g., MyLifeOSVault).
+- Create empty markdown files named Yemek_Log.md, Hedefler.md, Aliskanliklar.md, Mufredat.md, and Spor.md, then commit them.
+
+### 2. Backend Setup
+1. Clone this repository to your server or local machine.
+2. Rename .env.example to .env and fill in the parameters:
+   - **GEMINI_API_KEY:** Get a free API key from Google AI Studio.
+   - **GITHUB_TOKEN:** Generate a Personal Access Token (Classic) with repository scopes.
+   - **GITHUB_REPO_OWNER / NAME:** Your GitHub username and vault repository name.
+   - **VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY:** Generated VAPID keys for PyWebPush.
+3. Install dependencies:
    ```bash
    pip install -r requirements.txt
    ```
-   *(Eğer dependencies listesini doğrudan kurmak isterseniz: `pip install fastapi uvicorn google-generativeai requests python-dotenv pydantic jinja2 multipart`)*
-4. Backend'i yerelde başlatın:
+4. Start the backend:
    ```bash
    uvicorn main:app --reload
    ```
 
-### 3. Frontend (PWA) Yapılandırması
-- `index.html` dosyası içindeki `const BACKEND_URL = ...` satırına FastAPI backend'inizin kurulu olduğu adresi girin (örn: Render veya Railway üzerindeki URL'niz).
-- Dosyaları (index.html, manifest.json, sw.js) ücretsiz olarak GitHub Pages, Netlify veya Vercel'e yükleyin.
-- Mobil tarayıcınızdan siteye gidip tarayıcı ayarlarından **"Ana Ekrana Ekle"** butonuna basarak uygulamayı telefonunuza yükleyin.
+### 3. Frontend Setup
+1. Configure index.html to point to your FastAPI backend URL.
+2. Deploy the frontend files (index.html, manifest.json, sw.js) to Vercel, Netlify, or GitHub Pages.
+3. Open the deployed page on a mobile browser, select "Add to Home Screen" to install it as a PWA, and grant notification permissions when prompted.
 
-### 4. Telefon Bildirimleri (ntfy.sh)
-- Telefonunuza App Store veya Google Play Store'dan ücretsiz **ntfy** uygulamasını indirin.
-- Uygulama içinden `.env` dosyasında belirlediğiniz `NTFY_TOPIC` kanalını takibe alın. Bildirimleriniz anında telefonunuza push bildirimi olarak gelecektir.
-
-### 5. PC Node Kurulumu
-- Bilgisayarınızda python kurulu olduğundan emin olun.
-- Gerekli kütüphaneleri kurun:
-  ```bash
-  pip install requests libtorrent yt-dlp
-  ```
-- `pc_node.py` dosyası içindeki `BACKEND_URL` parametresine FastAPI backend adresinizi girin.
-- Terminalden scripti çalıştırın:
-  ```bash
-  python pc_node.py
-  ```
-
----
-
-## 🌟 Kullanım Senaryoları
-
-* **Besin Girişi:**
-  - Sesli veya metin olarak: *"Bugün 300 gram tavuk göğsü, 150 gram pilav yedim"*
-  - **Sonuç:** Gemini besinleri algılar, kalorilerini ve makrolarını hesaplar ve GitHub üzerindeki `Yemek_Log.md` dosyasını otomatik günceller.
-* **Hedef Girişi:**
-  - Sesli veya metin olarak: *"Sporda bacak antrenmanımı bitirdim, ayrıca matematikten de 1.5 saat soru çözdüm"*
-  - **Sonuç:** `Hedefler.md` dosyasındaki ilgili yapılacaklar güncellenerek tamamlandı işaretlenir.
-* **İndirme ve Otomasyon:**
-  - Metin olarak: *"GTA 5 oyununu kur"* veya magnet linkini gönderin.
-  - **Sonuç:** PC Node açık olduğu anda komut kuyruktan çekilir ve indirme işlemi başlatılır veya Steam tetiklenir.
-* **No-Code Dinamik Özellik Ekleme:**
-  - Metin olarak: *"Bugün 2 litre su içtim"*
-  - **Sonuç:** Gemini bunu yeni bir kategori olarak algılar, repoda `Su_Takibi.md` adında bir dosya yoksa oluşturur ve altına log satırını tarih/saat ile yazar.
+### 4. PC Node Setup
+1. Ensure Python is installed on your local computer.
+2. Install dependencies:
+   ```bash
+   pip install requests libtorrent yt-dlp
+   ```
+3. Set the BACKEND_URL in pc_node.py to match your backend.
+4. Run the node:
+   ```bash
+   python pc_node.py
+   ```
