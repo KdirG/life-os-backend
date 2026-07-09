@@ -1169,6 +1169,20 @@
                 <div class="status-msg" id="statusMsg">Bağlantı aranıyor...</div>
             </div>
 
+            <!-- Günün AI Özeti Kartı -->
+            <div class="card" id="briefingCard" style="margin-top: 20px;">
+                <div class="notification-header" style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+                    <h2 id="briefingCardTitle" style="font-size: 1.1rem; font-weight: 600; color: var(--text-color);">Günün AI Özeti</h2>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="action-btn edit" id="btn-generate-briefing" onclick="generateDailyBriefing()" style="padding: 6px 12px; font-size: 0.8rem; margin: 0; background: var(--neon-blue); border-color: var(--neon-blue); color: #000; font-weight: bold;">Özeti Oluştur</button>
+                        <button class="action-btn" id="btn-read-briefing" onclick="speakDailyBriefing()" style="padding: 6px 12px; font-size: 0.8rem; margin: 0; display: none;">🔊 Seslendir</button>
+                    </div>
+                </div>
+                <div id="briefingText" style="font-size: 0.9rem; line-height: 1.5; color: var(--text-color); min-height: 40px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 12px;">
+                    <div class="empty-notifications" id="briefingEmptyText">Özet henüz oluşturulmadı. Yukarıdan "Özeti Oluştur" butonuna basın.</div>
+                </div>
+            </div>
+
             <!-- Gözcü Bildirim Kartı -->
             <div class="card notification-card">
                 <div class="notification-header">
@@ -1202,6 +1216,32 @@
                 
                 <div class="food-list" id="foodListContainer">
                     <div class="empty-notifications" id="emptyFoodMsg">Bugün henüz hiçbir yemek kaydedilmedi.</div>
+                </div>
+            </div>
+
+            <!-- Haftalık Analizler & Grafikler Kartı -->
+            <div class="card" style="margin-top: 20px;">
+                <div class="header-area" style="margin-bottom: 15px;">
+                    <h1 id="analyticsTitle">Haftalık Analiz & Grafik</h1>
+                </div>
+                <p class="subtitle" id="analyticsSubtitle" style="margin-bottom: 15px;">Son 7 günlük kalori tüketimi ve alışkanlık tamamlama durumunuz.</p>
+                
+                <div style="display: flex; flex-direction: column; gap: 20px;">
+                    <!-- Grafik 1: Kalori Dağılımı (Line Chart) -->
+                    <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 15px;">
+                        <div class="progress-title" id="chartCalTitle" style="margin-bottom: 12px; text-align: left; font-size: 0.95rem;">Kalori Tüketim Eğrisi (Son 7 Gün)</div>
+                        <div id="calorieChartContainer" style="width: 100%; height: 200px; display: flex; align-items: center; justify-content: center;">
+                            <div class="empty-notifications" id="chartCalLoading">Grafik verileri yükleniyor...</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Grafik 2: Alışkanlıklar (Bar Chart) -->
+                    <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 15px;">
+                        <div class="progress-title" id="chartHabitTitle" style="margin-bottom: 12px; text-align: left; font-size: 0.95rem;">Alışkanlık Tamamlama Oranı (Son 7 Gün)</div>
+                        <div id="habitChartContainer" style="width: 100%; height: 200px; display: flex; align-items: center; justify-content: center;">
+                            <div class="empty-notifications" id="chartHabitLoading">Grafik verileri yükleniyor...</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -2665,7 +2705,18 @@
                 ex_not_found: "Veritabanında bulunamadı.",
                 no_ex_desc: "Bu hareket için açıklama bulunamadı.",
                 loading_img: "Görsel yükleniyor...",
-                no_img: "Görsel yok."
+                no_img: "Görsel yok.",
+                title_briefing_card: "Günün AI Özeti",
+                btn_generate_briefing: "Özeti Oluştur",
+                btn_refresh_briefing: "Özeti Yenile",
+                btn_read_briefing: "🔊 Seslendir",
+                btn_stop_briefing: "🛑 Durdur",
+                empty_briefing: "Özet henüz oluşturulmadı. Yukarıdan \"Özeti Oluştur\" butonuna basın.",
+                title_analytics: "Haftalık Analiz & Grafik",
+                subtitle_analytics: "Son 7 günlük kalori tüketimi ve alışkanlık tamamlama durumunuz.",
+                title_chart_cal: "Kalori Tüketim Eğrisi (Son 7 Gün)",
+                title_chart_habit: "Alışkanlık Tamamlama Oranı (Son 7 Gün)",
+                loading_chart: "Grafik verileri yükleniyor..."
             },
             en: {
                 nav_assistant: "Assistant",
@@ -2755,7 +2806,18 @@
                 ex_not_found: "Not found in database.",
                 no_ex_desc: "No description found for this exercise.",
                 loading_img: "Loading image...",
-                no_img: "No image."
+                no_img: "No image.",
+                title_briefing_card: "Daily AI Briefing",
+                btn_generate_briefing: "Generate Briefing",
+                btn_refresh_briefing: "Refresh Briefing",
+                btn_read_briefing: "🔊 Read Aloud",
+                btn_stop_briefing: "🛑 Stop",
+                empty_briefing: "Briefing not generated yet. Press \"Generate Briefing\" above.",
+                title_analytics: "Weekly Analytics & Charts",
+                subtitle_analytics: "Your calorie intake and habit completion trends for the last 7 days.",
+                title_chart_cal: "Calorie Intake Trend (Last 7 Days)",
+                title_chart_habit: "Habit Completion Rate (Last 7 Days)",
+                loading_chart: "Loading chart data..."
             }
         };
 
@@ -2963,6 +3025,52 @@
                 youtubeBtn.innerHTML = youtubeBtn.querySelector('svg').outerHTML + ' ' + t.modal_ex_video;
             }
             
+            // Briefing Card
+            const briefingCardTitle = document.getElementById('briefingCardTitle');
+            if (briefingCardTitle) briefingCardTitle.innerText = t.title_briefing_card;
+            
+            const btnGenerateBriefing = document.getElementById('btn-generate-briefing');
+            if (btnGenerateBriefing) {
+                if (btnGenerateBriefing.innerText.includes("Yenile") || btnGenerateBriefing.innerText.includes("Refresh")) {
+                    btnGenerateBriefing.innerText = t.btn_refresh_briefing;
+                } else if (btnGenerateBriefing.innerText.includes("Özetleniyor") || btnGenerateBriefing.innerText.includes("Briefing")) {
+                    btnGenerateBriefing.innerText = lang === 'tr' ? "Özetleniyor..." : "Briefing...";
+                } else {
+                    btnGenerateBriefing.innerText = t.btn_generate_briefing;
+                }
+            }
+            
+            const btnReadBriefing = document.getElementById('btn-read-briefing');
+            if (btnReadBriefing) {
+                if (window.speechSynthesis && window.speechSynthesis.speaking) {
+                    btnReadBriefing.innerText = t.btn_stop_briefing;
+                } else {
+                    btnReadBriefing.innerText = t.btn_read_briefing;
+                }
+            }
+            
+            const briefingEmptyText = document.getElementById('briefingEmptyText');
+            if (briefingEmptyText) briefingEmptyText.innerText = t.empty_briefing;
+
+            // Analytics Card
+            const analyticsTitle = document.getElementById('analyticsTitle');
+            if (analyticsTitle) analyticsTitle.innerText = t.title_analytics;
+            
+            const analyticsSubtitle = document.getElementById('analyticsSubtitle');
+            if (analyticsSubtitle) analyticsSubtitle.innerText = t.subtitle_analytics;
+            
+            const chartCalTitle = document.getElementById('chartCalTitle');
+            if (chartCalTitle) chartCalTitle.innerText = t.title_chart_cal;
+            
+            const chartHabitTitle = document.getElementById('chartHabitTitle');
+            if (chartHabitTitle) chartHabitTitle.innerText = t.title_chart_habit;
+            
+            const chartCalLoading = document.getElementById('chartCalLoading');
+            if (chartCalLoading) chartCalLoading.innerText = t.loading_chart;
+            
+            const chartHabitLoading = document.getElementById('chartHabitLoading');
+            if (chartHabitLoading) chartHabitLoading.innerText = t.loading_chart;
+
             // Re-render components with translated dynamic strings
             updateProgressUI();
             renderFoodList();
@@ -2973,6 +3081,314 @@
             
             renderMufredatBuilder();
             renderSporPlan();
+            renderAnalyticsCharts();
+        }
+
+        // --- GÜNLÜK AI ÖZETİ VE SESLENDİRME ---
+        async function generateDailyBriefing() {
+            const briefingText = document.getElementById('briefingText');
+            const btnGenerate = document.getElementById('btn-generate-briefing');
+            const btnRead = document.getElementById('btn-read-briefing');
+            if (!briefingText) return;
+            
+            btnGenerate.disabled = true;
+            btnGenerate.innerText = currentLang === 'tr' ? "Özetleniyor..." : "Briefing...";
+            
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                const todayIndex = new Date().getDay();
+                const todayKey = DAY_INDEX_MAP[todayIndex];
+                
+                const weeklyLimits = JSON.parse(localStorage.getItem('weekly_limits') || '{}');
+                const todayLimits = weeklyLimits[todayKey] || { calories: 2000, protein: 140 };
+                const totalCal = todayLogItems.reduce((sum, item) => sum + item.calories, 0);
+                const limitCal = todayLimits.calories;
+                
+                const habitMaster = localStorage.getItem('habit_list') || "Kitap Okuma, Yazılım Çalışma, Spor, Vitamin";
+                const habitsList = habitMaster.split(',').map(h => h.trim()).filter(h => h.length > 0);
+                const completedHabits = Object.values(todayHabitStates).filter(v => v === true).length;
+                const totalHabits = habitsList.length;
+                
+                const todayDayName = DAY_LABELS[todayKey] || "Bugün";
+                const dayExercises = sporPlanData[todayDayName] || [];
+                const workoutNames = dayExercises.length > 0 
+                    ? dayExercises.map(e => `${e.name} (${e.sets})`).join(', ')
+                    : (currentLang === 'tr' ? "Dinlenme Günü" : "Rest Day");
+                    
+                let studySummary = "";
+                if (mufredatData.length === 0) {
+                    studySummary = currentLang === 'tr' ? "Henüz ders eklenmemiş." : "No study subjects added yet.";
+                } else {
+                    studySummary = mufredatData.map(s => {
+                        const incomplete = s.topics.filter(t => !t.checked).length;
+                        return `${s.name}: ${incomplete} ${currentLang === 'tr' ? 'tamamlanmamış konu' : 'incomplete topic(s)'}`;
+                    }).join(' | ');
+                }
+                
+                const prompt = `You are a premium AI Life Assistant. Analyze the user's current day state and provide a brief, engaging, motivational daily briefing in the user's selected language.
+Selected Language: ${currentLang === 'tr' ? 'Turkish' : 'English'}
+- Date & Day: Today is ${todayDayName} (${today}).
+- Nutrition: Consumed ${totalCal.toFixed(0)} kcal out of ${limitCal} kcal limit for today. Remaining: ${(limitCal - totalCal).toFixed(0)} kcal.
+- Habits: ${completedHabits} out of ${totalHabits} completed today.
+- Workout: Today's workout plan: ${workoutNames}.
+- Study Curriculum: Current subject status: ${studySummary}.
+
+Instructions:
+1. Speak directly to the user (e.g., "Günaydın!" or "Hello!"). Do not use a generic placeholder like [Username].
+2. Write a highly motivational, brief 2-paragraph summary. 
+3. Mention key highlights (such as remaining calories, study tasks, or workout plan).
+4. Do NOT use markdown bold headers or bullet points. Keep it as normal flowing paragraphs.`;
+
+                const apiKey = localStorage.getItem('gemini_api_key');
+                if (!apiKey) {
+                    throw new Error(currentLang === 'tr' ? "Lütfen ayarlardan Gemini API Anahtarınızı girin!" : "Please enter your Gemini API Key in Settings!");
+                }
+                
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }]
+                    })
+                });
+                
+                if (!res.ok) {
+                    throw new Error("Gemini API call failed");
+                }
+                
+                const resData = await res.json();
+                const briefingContent = resData.candidates[0].content.parts[0].text;
+                
+                briefingText.innerHTML = `<div style="animation: fadeIn 0.3s ease;">${briefingContent.replace(/\n/g, '<br>')}</div>`;
+                
+                if (btnRead) {
+                    btnRead.style.display = 'inline-block';
+                    btnRead.innerText = currentLang === 'tr' ? "🔊 Seslendir" : "🔊 Read Aloud";
+                }
+            } catch (err) {
+                console.error("Briefing failed:", err);
+                briefingText.innerHTML = `<div class="empty-notifications" style="color:var(--neon-red);">${err.message}</div>`;
+            } finally {
+                btnGenerate.disabled = false;
+                btnGenerate.innerText = currentLang === 'tr' ? "Özeti Yenile" : "Refresh Briefing";
+            }
+        }
+        
+        function speakDailyBriefing() {
+            const briefingText = document.getElementById('briefingText');
+            const btnRead = document.getElementById('btn-read-briefing');
+            if (!briefingText || !btnRead) return;
+            
+            if (window.speechSynthesis.speaking) {
+                window.speechSynthesis.cancel();
+                btnRead.innerText = currentLang === 'tr' ? "🔊 Seslendir" : "🔊 Read Aloud";
+                return;
+            }
+            
+            const rawText = briefingText.innerText;
+            if (rawText.includes("Özet henüz oluşturulmadı") || rawText.includes("Briefing not generated")) return;
+            
+            const utterance = new SpeechSynthesisUtterance(rawText);
+            const langLocale = currentLang === 'tr' ? 'tr-TR' : 'en-US';
+            utterance.lang = langLocale;
+            
+            const voices = window.speechSynthesis.getVoices();
+            const matchingVoice = voices.find(v => v.lang.startsWith(currentLang));
+            if (matchingVoice) {
+                utterance.voice = matchingVoice;
+            }
+            
+            utterance.onstart = () => {
+                btnRead.innerText = currentLang === 'tr' ? "🛑 Durdur" : "🛑 Stop";
+            };
+            
+            utterance.onend = () => {
+                btnRead.innerText = currentLang === 'tr' ? "🔊 Seslendir" : "🔊 Read Aloud";
+            };
+            
+            utterance.onerror = () => {
+                btnRead.innerText = currentLang === 'tr' ? "🔊 Seslendir" : "🔊 Read Aloud";
+            };
+            
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // --- HAFTALIK DİNAMİK SVG GRAFİKLER ---
+        function renderAnalyticsCharts() {
+            const calContainer = document.getElementById('calorieChartContainer');
+            const habContainer = document.getElementById('habitChartContainer');
+            if (!calContainer || !habContainer) return;
+            
+            const daysData = [];
+            const weeklyLimits = JSON.parse(localStorage.getItem('weekly_limits') || '{}');
+            const habitMaster = localStorage.getItem('habit_list') || "Kitap Okuma, Yazılım Çalışma, Spor, Vitamin";
+            const habitsList = habitMaster.split(',').map(h => h.trim()).filter(h => h.length > 0);
+            
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                const dateStr = d.toISOString().split('T')[0];
+                const displayDate = (d.getMonth() + 1) + '/' + d.getDate();
+                const dayIndex = d.getDay();
+                const dayKey = DAY_INDEX_MAP[dayIndex];
+                
+                const foods = parseMarkdownForDay(fullFileContent, dateStr);
+                const totalCal = foods.reduce((sum, item) => sum + item.calories, 0);
+                const limitCal = weeklyLimits[dayKey]?.calories || 2000;
+                
+                const habitStates = parseHabitsForDay(fullHabitContent, dateStr, habitsList);
+                const completedCount = Object.values(habitStates).filter(v => v === true).length;
+                const habitPct = habitsList.length > 0 ? Math.round((completedCount / habitsList.length) * 100) : 0;
+                
+                daysData.push({
+                    dateStr,
+                    displayDate,
+                    calories: totalCal,
+                    limit: limitCal,
+                    habitPct: habitPct
+                });
+            }
+            
+            renderCalorieChart(calContainer, daysData);
+            renderHabitChart(habContainer, daysData);
+        }
+        
+        function renderCalorieChart(container, data) {
+            const maxVal = Math.max(...data.map(d => Math.max(d.calories, d.limit, 1500))) * 1.15;
+            const width = 450;
+            const height = 180;
+            const paddingLeft = 45;
+            const paddingRight = 15;
+            const paddingTop = 20;
+            const paddingBottom = 25;
+            
+            const graphWidth = width - paddingLeft - paddingRight;
+            const graphHeight = height - paddingTop - paddingBottom;
+            
+            let points = [];
+            let limitPoints = [];
+            data.forEach((d, i) => {
+                const x = paddingLeft + (i * (graphWidth / 6));
+                const yCal = height - paddingBottom - (d.calories / maxVal) * graphHeight;
+                const yLimit = height - paddingBottom - (d.limit / maxVal) * graphHeight;
+                points.push({ x, y: yCal, val: d.calories, date: d.displayDate });
+                limitPoints.push({ x, y: yLimit, val: d.limit });
+            });
+            
+            let svg = `<svg width="100%" height="100%" viewBox="0 0 ${width} ${height}" style="overflow: visible;">
+                <defs>
+                    <linearGradient id="calGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="var(--neon-blue)" stop-opacity="0.3"/>
+                        <stop offset="100%" stop-color="var(--neon-blue)" stop-opacity="0"/>
+                    </linearGradient>
+                </defs>
+                
+                <line x1="${paddingLeft}" y1="${paddingTop}" x2="${width - paddingRight}" y2="${paddingTop}" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+                <line x1="${paddingLeft}" y1="${paddingTop + graphHeight/2}" x2="${width - paddingRight}" y2="${paddingTop + graphHeight/2}" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+                <line x1="${paddingLeft}" y1="${height - paddingBottom}" x2="${width - paddingRight}" y2="${height - paddingBottom}" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+                
+                <text x="${paddingLeft - 8}" y="${paddingTop + 4}" fill="var(--text-muted)" font-size="9" text-anchor="end">${Math.round(maxVal)}</text>
+                <text x="${paddingLeft - 8}" y="${paddingTop + graphHeight/2 + 4}" fill="var(--text-muted)" font-size="9" text-anchor="end">${Math.round(maxVal/2)}</text>
+                <text x="${paddingLeft - 8}" y="${height - paddingBottom + 4}" fill="var(--text-muted)" font-size="9" text-anchor="end">0</text>
+            `;
+            
+            let limitD = `M ${limitPoints[0].x} ${limitPoints[0].y}`;
+            for (let i = 1; i < limitPoints.length; i++) {
+                limitD += ` L ${limitPoints[i].x} ${limitPoints[i].y}`;
+            }
+            svg += `<path d="${limitD}" fill="none" stroke="var(--neon-red)" stroke-width="1.2" stroke-dasharray="3,3" opacity="0.6"/>`;
+            
+            let areaD = `M ${points[0].x} ${height - paddingBottom}`;
+            points.forEach(p => areaD += ` L ${p.x} ${p.y}`);
+            areaD += ` L ${points[points.length - 1].x} ${height - paddingBottom} Z`;
+            svg += `<path d="${areaD}" fill="url(#calGrad)"/>`;
+            
+            let lineD = `M ${points[0].x} ${points[0].y}`;
+            for (let i = 1; i < points.length; i++) {
+                lineD += ` L ${points[i].x} ${points[i].y}`;
+            }
+            svg += `<path d="${lineD}" fill="none" stroke="var(--neon-blue)" stroke-width="2.5" stroke-linecap="round"/>`;
+            
+            points.forEach((p, i) => {
+                svg += `
+                    <text x="${p.x}" y="${height - 8}" fill="var(--text-muted)" font-size="9" text-anchor="middle">${p.date}</text>
+                    <circle cx="${p.x}" cy="${p.y}" r="4" fill="var(--bg-card)" stroke="var(--neon-blue)" stroke-width="2" class="chart-dot"/>
+                    <g class="chart-tooltip" style="pointer-events: none; opacity: 0;">
+                        <rect x="${p.x - 30}" y="${p.y - 28}" width="60" height="20" rx="4" fill="var(--bg-card)" stroke="var(--neon-blue)" stroke-width="1"/>
+                        <text x="${p.x}" y="${p.y - 15}" fill="var(--text-color)" font-size="9" text-anchor="middle" font-weight="bold">${Math.round(p.val)}</text>
+                    </g>
+                    <rect x="${p.x - 20}" y="${paddingTop}" width="40" height="${graphHeight}" fill="transparent" style="cursor: pointer;" 
+                        onmouseover="this.previousElementSibling.style.opacity = 1; this.previousElementSibling.previousElementSibling.setAttribute('r', 6);"
+                        onmouseout="this.previousElementSibling.style.opacity = 0; this.previousElementSibling.previousElementSibling.setAttribute('r', 4);"/>
+                `;
+            });
+            
+            svg += `
+                <style>
+                    .chart-tooltip { transition: opacity 0.15s ease; }
+                    .chart-dot { transition: r 0.15s ease; }
+                </style>
+            </svg>`;
+            
+            container.innerHTML = svg;
+        }
+        
+        function renderHabitChart(container, data) {
+            const width = 450;
+            const height = 180;
+            const paddingLeft = 35;
+            const paddingRight = 15;
+            const paddingTop = 20;
+            const paddingBottom = 25;
+            
+            const graphWidth = width - paddingLeft - paddingRight;
+            const graphHeight = height - paddingTop - paddingBottom;
+            
+            let svg = `<svg width="100%" height="100%" viewBox="0 0 ${width} ${height}" style="overflow: visible;">
+                <defs>
+                    <linearGradient id="habitGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="var(--neon-green)" stop-opacity="0.8"/>
+                        <stop offset="100%" stop-color="var(--neon-green)" stop-opacity="0.3"/>
+                    </linearGradient>
+                </defs>
+                
+                <line x1="${paddingLeft}" y1="${paddingTop}" x2="${width - paddingRight}" y2="${paddingTop}" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+                <line x1="${paddingLeft}" y1="${paddingTop + graphHeight/2}" x2="${width - paddingRight}" y2="${paddingTop + graphHeight/2}" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+                <line x1="${paddingLeft}" y1="${height - paddingBottom}" x2="${width - paddingRight}" y2="${height - paddingBottom}" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+                
+                <text x="${paddingLeft - 8}" y="${paddingTop + 4}" fill="var(--text-muted)" font-size="9" text-anchor="end">100%</text>
+                <text x="${paddingLeft - 8}" y="${paddingTop + graphHeight/2 + 4}" fill="var(--text-muted)" font-size="9" text-anchor="end">50%</text>
+                <text x="${paddingLeft - 8}" y="${height - paddingBottom + 4}" fill="var(--text-muted)" font-size="9" text-anchor="end">0%</text>
+            `;
+            
+            const barWidth = 24;
+            
+            data.forEach((d, i) => {
+                const x = paddingLeft + (i * (graphWidth / 6)) - (barWidth / 2);
+                const barHeight = (d.habitPct / 100) * graphHeight;
+                const y = height - paddingBottom - barHeight;
+                
+                svg += `
+                    <text x="${x + barWidth/2}" y="${height - 8}" fill="var(--text-muted)" font-size="9" text-anchor="middle">${d.displayDate}</text>
+                    <rect x="${x}" y="${y}" width="${barWidth}" height="${barHeight}" rx="4" fill="url(#habitGrad)"/>
+                    <g class="chart-tooltip" style="pointer-events: none; opacity: 0;">
+                        <rect x="${x + barWidth/2 - 20}" y="${y - 25}" width="40" height="18" rx="4" fill="var(--bg-card)" stroke="var(--neon-green)" stroke-width="1"/>
+                        <text x="${x + barWidth/2}" y="${y - 13}" fill="var(--text-color)" font-size="9" text-anchor="middle" font-weight="bold">${d.habitPct}%</text>
+                    </g>
+                    <rect x="${x - 6}" y="${paddingTop}" width="${barWidth + 12}" height="${graphHeight}" fill="transparent" style="cursor: pointer;" 
+                        onmouseover="this.previousElementSibling.style.opacity = 1;"
+                        onmouseout="this.previousElementSibling.style.opacity = 0;"/>
+                `;
+            });
+            
+            svg += `
+                <style>
+                    .chart-tooltip { transition: opacity 0.15s ease; }
+                </style>
+            </svg>`;
+            
+            container.innerHTML = svg;
         }
 
         async function changeLanguage(lang) {
