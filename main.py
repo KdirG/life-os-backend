@@ -326,6 +326,25 @@ def get_file_content(filename: str):
     content, _ = get_github_file(filename)
     return {"content": content}
 
+class FileUpdateModel(BaseModel):
+    content: str
+    message: Optional[str] = "Dosya güncellendi"
+
+@app.post("/api/file/{filename}")
+def save_file_content(filename: str, payload: FileUpdateModel):
+    """GitHub'daki dosya içeriğini doğrudan günceller (PWA'den gelen düzenleme/silmeler için)."""
+    if filename not in ["Hedefler.md", "Yemek_Log.md"]:
+        raise HTTPException(status_code=403, detail="Erişim engellendi.")
+    _, sha = get_github_file(filename)
+    success = update_github_file(filename, payload.content, sha, message=payload.message)
+    if not success:
+        raise HTTPException(status_code=500, detail="Dosya güncellenirken GitHub hatası oluştu.")
+    
+    if filename == "Yemek_Log.md":
+        send_push_notification("Life OS Güncelleme 📝", "Yemek günlüğü başarıyla güncellendi.")
+        
+    return {"status": "success"}
+
 # --- PWA Web Push Abone Olma Endpoint'leri ---
 
 @app.get("/api/vapid-public-key")
