@@ -3006,18 +3006,40 @@
             // Settings Tab
             document.querySelector('#tab-ayarlar h1').innerText = t.title_settings;
             document.querySelector('#tab-ayarlar .subtitle').innerText = t.subtitle_settings;
-            document.querySelectorAll('#tab-ayarlar .settings-panel h3')[0].previousElementSibling.previousElementSibling.innerText = t.label_server_url;
-            document.querySelectorAll('#tab-ayarlar .settings-panel h3')[0].previousElementSibling.innerText = t.label_gemini_key;
-            document.querySelectorAll('#tab-ayarlar .settings-panel h3')[0].innerText = t.title_github_settings;
-            document.querySelectorAll('#tab-ayarlar .settings-panel h3')[0].nextElementSibling.innerText = t.subtitle_github;
             
-            document.querySelector('label[for="githubTokenInput"]').innerText = t.label_github_token;
-            document.querySelector('label[for="githubOwnerInput"]').innerText = t.label_github_owner;
-            document.querySelector('label[for="githubRepoInput"]').innerText = t.label_github_repo;
+            const settingsH3s = document.querySelectorAll('#tab-ayarlar .settings-panel h3');
+            if (settingsH3s.length >= 4) {
+                settingsH3s[0].innerText = lang === 'tr' ? "Sistem Bağlantı Ayarları" : "System Connection Settings";
+                settingsH3s[1].innerText = t.title_github_settings;
+                settingsH3s[2].innerText = t.title_habit_settings;
+                settingsH3s[3].innerText = lang === 'tr' ? "Uygulama Dili / Language" : "Application Language";
+            }
             
-            document.querySelectorAll('#tab-ayarlar .settings-panel h3')[1].innerText = t.title_habit_settings;
-            document.querySelector('label[for="habitListInput"]').innerText = t.label_habit_list;
-            document.querySelector('label[for="languageSelect"]').innerText = t.label_lang;
+            const githubSubtitle = document.querySelector('#tab-ayarlar .settings-panel h3 + p.subtitle');
+            if (githubSubtitle) {
+                githubSubtitle.innerText = t.subtitle_github;
+            }
+            
+            const labelServer = document.querySelector('label[for="backendUrlInput"]');
+            if (labelServer) labelServer.innerText = t.label_server_url;
+            
+            const labelGemini = document.querySelector('label[for="geminiApiKeyInput"]');
+            if (labelGemini) labelGemini.innerText = t.label_gemini_key;
+            
+            const labelToken = document.querySelector('label[for="githubTokenInput"]');
+            if (labelToken) labelToken.innerText = t.label_github_token;
+            
+            const labelOwner = document.querySelector('label[for="githubOwnerInput"]');
+            if (labelOwner) labelOwner.innerText = t.label_github_owner;
+            
+            const labelRepo = document.querySelector('label[for="githubRepoInput"]');
+            if (labelRepo) labelRepo.innerText = t.label_github_repo;
+            
+            const labelHabits = document.querySelector('label[for="habitListInput"]');
+            if (labelHabits) labelHabits.innerText = t.label_habit_list;
+            
+            const labelLang = document.querySelector('label[for="languageSelect"]');
+            if (labelLang) labelLang.innerText = t.label_lang;
             document.querySelector('#tab-ayarlar .settings-panel button').innerText = t.btn_save_settings;
             
             // Modals text
