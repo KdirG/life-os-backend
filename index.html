@@ -2508,9 +2508,17 @@
                     });
                 }
                 
-                const folderName = ex.name.replace(/\s+/g, '_').replace(/'/g, '').replace(/-/g, '_');
-                const img0 = `https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/${folderName}/0.jpg`;
-                const img1 = `https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/${folderName}/1.jpg`;
+                let img0 = "";
+                let img1 = "";
+                
+                if (ex.images && ex.images.length >= 2) {
+                    img0 = `https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/${ex.images[0]}`;
+                    img1 = `https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/${ex.images[1]}`;
+                } else {
+                    const folderName = ex.name.replace(/\s+/g, '_').replace(/'/g, '');
+                    img0 = `https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/${folderName}/0.jpg`;
+                    img1 = `https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/${folderName}/1.jpg`;
+                }
                 
                 let currentFrame = 0;
                 imgEl.src = img0;
