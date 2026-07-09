@@ -10,14 +10,19 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #020617 100%);
-            --glass-bg: rgba(30, 41, 59, 0.45);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --accent-glow: 0 0 25px rgba(99, 102, 241, 0.4);
-            --neon-blue: #38bdf8;
-            --neon-indigo: #6366f1;
-            --neon-green: #10b981;
-            --neon-red: #ef4444;
+            --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(148, 163, 184, 0.22);
+            --accent-glow: 0 8px 30px rgba(79, 70, 229, 0.08);
+            --neon-blue: #2563eb;
+            --neon-indigo: #4f46e5;
+            --neon-green: #059669;
+            --neon-red: #dc2626;
+            
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --input-bg: rgba(255, 255, 255, 0.95);
+            --card-inner-bg: rgba(241, 245, 249, 0.7);
         }
 
         * {
@@ -29,7 +34,7 @@
         body {
             font-family: 'Outfit', sans-serif;
             background: var(--bg-gradient);
-            color: #f8fafc;
+            color: var(--text-main);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -38,6 +43,10 @@
             padding: 20px;
             padding-bottom: 90px; /* Alt navigasyon barı için boşluk */
             overflow-y: auto;
+        }
+
+        h2, h3 {
+            color: var(--text-main);
         }
 
         .container {
@@ -81,7 +90,7 @@
 
         p.subtitle {
             font-size: 0.95rem;
-            color: #94a3b8;
+            color: var(--text-muted);
             margin-bottom: 20px;
             font-weight: 300;
             text-align: center;
@@ -99,7 +108,7 @@
 
         /* İlerleme Çubuğu Kartı */
         .progress-card {
-            background: rgba(15, 23, 42, 0.4);
+            background: var(--card-inner-bg);
             border: 1px solid var(--glass-border);
             border-radius: 20px;
             padding: 18px;
@@ -128,17 +137,17 @@
             justify-content: space-between;
             font-size: 0.8rem;
             margin-bottom: 6px;
-            color: #cbd5e1;
+            color: var(--text-muted);
             font-weight: 400;
         }
 
         .progress-bg {
             width: 100%;
             height: 8px;
-            background: rgba(15, 23, 42, 0.7);
+            background: var(--card-inner-bg);
             border-radius: 4px;
             overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
         }
 
         .progress-fill {
@@ -223,11 +232,11 @@
         textarea {
             width: 100%;
             height: 80px;
-            background: rgba(15, 23, 42, 0.6);
+            background: var(--input-bg);
             border: 1px solid var(--glass-border);
             border-radius: 14px;
             padding: 14px;
-            color: #f8fafc;
+            color: var(--text-main);
             font-family: inherit;
             font-size: 0.95rem;
             resize: none;
@@ -341,7 +350,7 @@
         }
 
         .notification-item {
-            background: rgba(15, 23, 42, 0.4);
+            background: var(--card-inner-bg);
             border: 1px solid var(--glass-border);
             border-radius: 12px;
             padding: 12px;
@@ -370,7 +379,7 @@
 
         .notif-body {
             font-size: 0.85rem;
-            color: #e2e8f0;
+            color: var(--text-main);
             line-height: 1.3;
         }
 
@@ -386,7 +395,7 @@
         }
 
         .food-item-card {
-            background: rgba(15, 23, 42, 0.4);
+            background: var(--card-inner-bg);
             border: 1px solid var(--glass-border);
             border-radius: 18px;
             padding: 14px 16px;
@@ -405,7 +414,7 @@
         .food-item-name {
             font-weight: 700;
             font-size: 1.05rem;
-            color: #ffffff;
+            color: var(--text-main);
         }
 
         .food-item-time {
@@ -415,19 +424,19 @@
 
         .food-item-details {
             font-size: 0.85rem;
-            color: #94a3b8;
+            color: var(--text-muted);
         }
 
         .food-item-macros {
             display: flex;
             gap: 8px;
             font-size: 0.75rem;
-            color: #cbd5e1;
+            color: var(--text-muted);
             margin-top: 4px;
         }
 
         .macro-badge {
-            background: rgba(15, 23, 42, 0.5);
+            background: var(--input-bg);
             border: 1px solid var(--glass-border);
             padding: 2px 6px;
             border-radius: 4px;
@@ -482,7 +491,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(15, 23, 42, 0.85);
+            background: rgba(15, 23, 42, 0.45);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             z-index: 200;
@@ -492,13 +501,13 @@
         }
 
         .edit-modal-content {
-            background: rgba(30, 41, 59, 0.95);
+            background: var(--glass-bg);
             border: 1px solid var(--glass-border);
             border-radius: 24px;
             padding: 24px;
             width: 100%;
             max-width: 360px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 10px 40px rgba(148, 163, 184, 0.15);
             text-align: left;
         }
 
@@ -512,7 +521,7 @@
         .edit-modal label {
             display: block;
             font-size: 0.75rem;
-            color: #94a3b8;
+            color: var(--text-muted);
             margin-bottom: 4px;
             margin-top: 10px;
         }
@@ -520,10 +529,10 @@
         .edit-modal input {
             width: 100%;
             padding: 10px;
-            background: rgba(15, 23, 42, 0.8);
+            background: var(--input-bg);
             border: 1px solid var(--glass-border);
             border-radius: 8px;
-            color: white;
+            color: var(--text-main);
             font-family: inherit;
             outline: none;
         }
@@ -551,9 +560,9 @@
         }
 
         .edit-modal-btn.cancel {
-            background: rgba(15, 23, 42, 0.6);
+            background: var(--card-inner-bg);
             border: 1px solid var(--glass-border);
-            color: #e2e8f0;
+            color: var(--text-main);
         }
 
         /* --- LİMİTLER & AYARLAR SEKME --- */
@@ -573,7 +582,7 @@
         .settings-panel label {
             display: block;
             font-size: 0.75rem;
-            color: #94a3b8;
+            color: var(--text-muted);
             margin-bottom: 4px;
             margin-top: 12px;
         }
@@ -581,10 +590,10 @@
         .settings-panel input {
             width: 100%;
             padding: 11px;
-            background: rgba(15, 23, 42, 0.6);
+            background: var(--input-bg);
             border: 1px solid var(--glass-border);
             border-radius: 10px;
-            color: white;
+            color: var(--text-main);
             font-family: inherit;
             outline: none;
             transition: border-color 0.2s;
@@ -618,7 +627,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: rgba(15, 23, 42, 0.3);
+            background: var(--card-inner-bg);
             border: 1px solid var(--glass-border);
             padding: 10px 14px;
             border-radius: 12px;
@@ -627,7 +636,7 @@
         .day-name {
             font-size: 0.85rem;
             font-weight: 600;
-            color: #cbd5e1;
+            color: var(--text-muted);
             width: 90px;
             text-align: left;
         }
@@ -657,13 +666,13 @@
         }
         
         .habit-chip {
-            background: rgba(15, 23, 42, 0.45);
+            background: var(--input-bg);
             border: 1px solid var(--glass-border);
             border-radius: 20px;
             padding: 8px 16px;
             font-size: 0.8rem;
             font-weight: 600;
-            color: #94a3b8;
+            color: var(--text-muted);
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             user-select: none;
@@ -681,7 +690,7 @@
 
         /* Müfredat Planlayıcı Tasarımı */
         .study-subject-card {
-            background: rgba(15, 23, 42, 0.4);
+            background: var(--card-inner-bg);
             border: 1px solid var(--glass-border);
             border-radius: 16px;
             padding: 16px;
@@ -699,7 +708,7 @@
         .study-subject-title {
             font-size: 1.05rem;
             font-weight: 700;
-            color: #ffffff;
+            color: var(--text-main);
         }
 
         .study-subject-pct {
@@ -715,8 +724,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: rgba(30, 41, 59, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: var(--input-bg);
+            border: 1px solid var(--glass-border);
             padding: 10px 12px;
             border-radius: 10px;
             margin-top: 8px;
@@ -738,7 +747,7 @@
 
         .study-topic-name {
             font-size: 0.85rem;
-            color: #cbd5e1;
+            color: var(--text-main);
         }
 
         .study-topic-item.completed .study-topic-name {
@@ -799,9 +808,9 @@
 
         .study-add-topic-form select {
             width: 90px;
-            background: rgba(15, 23, 42, 0.6);
+            background: var(--input-bg);
             border: 1px solid var(--glass-border);
-            color: white;
+            color: var(--text-main);
             padding: 8px;
             font-size: 0.8rem;
             border-radius: 8px;
@@ -821,7 +830,7 @@
             display: flex;
             gap: 8px;
             margin-top: 20px;
-            background: rgba(15, 23, 42, 0.2);
+            background: var(--card-inner-bg);
             padding: 12px;
             border-radius: 12px;
             border: 1px dashed var(--glass-border);
@@ -840,6 +849,55 @@
             font-size: 0.85rem !important;
         }
 
+        /* Accordion Stilleri */
+        .accordion-section {
+            border: 1px solid var(--glass-border);
+            background: var(--glass-bg);
+            border-radius: 16px;
+            padding: 12px 16px;
+            overflow: hidden;
+            margin-top: 15px;
+        }
+        
+        .accordion-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .accordion-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .accordion-icon {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            transition: transform 0.3s ease;
+        }
+
+        .accordion-icon.rotated {
+            transform: rotate(-180deg);
+        }
+
+        .accordion-body {
+            max-height: 2000px;
+            opacity: 1;
+            transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease, margin-top 0.3s ease;
+            margin-top: 10px;
+            text-align: left;
+        }
+
+        .accordion-body.collapsed {
+            max-height: 0;
+            opacity: 0;
+            margin-top: 0;
+            pointer-events: none;
+        }
+
         /* --- ALT NAVİGASYON BAR (BOTTOM NAV) --- */
         .bottom-nav {
             position: fixed;
@@ -847,7 +905,7 @@
             left: 0;
             right: 0;
             height: 64px;
-            background: rgba(15, 23, 42, 0.85);
+            background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(24px);
             -webkit-backdrop-filter: blur(24px);
             border-top: 1px solid var(--glass-border);
@@ -855,7 +913,7 @@
             justify-content: space-around;
             align-items: center;
             z-index: 100;
-            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 -4px 20px rgba(148, 163, 184, 0.12);
         }
 
         .nav-item {
@@ -1007,81 +1065,98 @@
         <div id="tab-limitler" class="tab-content">
             <div class="card" style="padding: 16px 20px;">
                 <div class="settings-panel">
-                    <h1>Beslenme Limitleri</h1>
-                    <p class="subtitle" style="text-align: left; margin-top: 5px;">Haftanın her günü için farklı kalori ve protein hedefleri belirleyin.</p>
-                    
-                    <div class="weekly-limits-list">
-                        <!-- Pazartesi -->
-                        <div class="day-limits-row">
-                            <span class="day-name">Pazartesi</span>
-                            <div class="day-inputs">
-                                <input type="number" id="limit-mon-cal" placeholder="Kalori">
-                                <input type="number" id="limit-mon-prot" placeholder="Protein">
-                            </div>
+                    <h1 style="margin-bottom: 20px;">Limitler & Müfredat</h1>
+
+                    <!-- Bölüm 1: Beslenme Limitleri -->
+                    <div class="accordion-section">
+                        <div class="accordion-header" onclick="toggleAccordion('beslenme-limits-body')">
+                            <span class="accordion-title">Haftalık Beslenme Limitleri</span>
+                            <span class="accordion-icon" id="beslenme-limits-body-icon">▼</span>
                         </div>
-                        <!-- Salı -->
-                        <div class="day-limits-row">
-                            <span class="day-name">Salı</span>
-                            <div class="day-inputs">
-                                <input type="number" id="limit-tue-cal" placeholder="Kalori">
-                                <input type="number" id="limit-tue-prot" placeholder="Protein">
+                        <div class="accordion-body collapsed" id="beslenme-limits-body">
+                            <p class="subtitle" style="text-align: left; margin-top: 10px; margin-bottom: 10px;">Haftanın her günü için farklı kalori ve protein hedefleri belirleyin.</p>
+                            <div class="weekly-limits-list">
+                                <!-- Pazartesi -->
+                                <div class="day-limits-row">
+                                    <span class="day-name">Pazartesi</span>
+                                    <div class="day-inputs">
+                                        <input type="number" id="limit-mon-cal" placeholder="Kalori">
+                                        <input type="number" id="limit-mon-prot" placeholder="Protein">
+                                    </div>
+                                </div>
+                                <!-- Salı -->
+                                <div class="day-limits-row">
+                                    <span class="day-name">Salı</span>
+                                    <div class="day-inputs">
+                                        <input type="number" id="limit-tue-cal" placeholder="Kalori">
+                                        <input type="number" id="limit-tue-prot" placeholder="Protein">
+                                    </div>
+                                </div>
+                                <!-- Çarşamba -->
+                                <div class="day-limits-row">
+                                    <span class="day-name">Çarşamba</span>
+                                    <div class="day-inputs">
+                                        <input type="number" id="limit-wed-cal" placeholder="Kalori">
+                                        <input type="number" id="limit-wed-prot" placeholder="Protein">
+                                    </div>
+                                </div>
+                                <!-- Perşembe -->
+                                <div class="day-limits-row">
+                                    <span class="day-name">Perşembe</span>
+                                    <div class="day-inputs">
+                                        <input type="number" id="limit-thu-cal" placeholder="Kalori">
+                                        <input type="number" id="limit-thu-prot" placeholder="Protein">
+                                    </div>
+                                </div>
+                                <!-- Cuma -->
+                                <div class="day-limits-row">
+                                    <span class="day-name">Cuma</span>
+                                    <div class="day-inputs">
+                                        <input type="number" id="limit-fri-cal" placeholder="Kalori">
+                                        <input type="number" id="limit-fri-prot" placeholder="Protein">
+                                    </div>
+                                </div>
+                                <!-- Cumartesi -->
+                                <div class="day-limits-row">
+                                    <span class="day-name">Cumartesi</span>
+                                    <div class="day-inputs">
+                                        <input type="number" id="limit-sat-cal" placeholder="Kalori">
+                                        <input type="number" id="limit-sat-prot" placeholder="Protein">
+                                    </div>
+                                </div>
+                                <!-- Pazar -->
+                                <div class="day-limits-row">
+                                    <span class="day-name">Pazar</span>
+                                    <div class="day-inputs">
+                                        <input type="number" id="limit-sun-cal" placeholder="Kalori">
+                                        <input type="number" id="limit-sun-prot" placeholder="Protein">
+                                    </div>
+                                </div>
                             </div>
+                            <button onclick="saveSettings()" style="margin-top: 15px;">Limitleri Kaydet</button>
                         </div>
-                        <!-- Çarşamba -->
-                        <div class="day-limits-row">
-                            <span class="day-name">Çarşamba</span>
-                            <div class="day-inputs">
-                                <input type="number" id="limit-wed-cal" placeholder="Kalori">
-                                <input type="number" id="limit-wed-prot" placeholder="Protein">
+                    </div>
+
+                    <!-- Bölüm 2: Ders Çalışma Müfredatı -->
+                    <div class="accordion-section" style="margin-top: 20px;">
+                        <div class="accordion-header" onclick="toggleAccordion('mufredat-builder-body')">
+                            <span class="accordion-title">Ders Çalışma Müfredatı</span>
+                            <span class="accordion-icon" id="mufredat-builder-body-icon">▼</span>
+                        </div>
+                        <div class="accordion-body collapsed" id="mufredat-builder-body">
+                            <p class="subtitle" style="text-align: left; margin-top: 10px; margin-bottom: 10px;">Derslerinizi ve konularınızı buradan yönetebilirsiniz. Değişiklikler arka planda otomatik olarak kaydedilir.</p>
+                            
+                            <div id="mufredatBuilderContainer">
+                                <div class="empty-notifications">Müfredat yükleniyor...</div>
                             </div>
-                        </div>
-                        <!-- Perşembe -->
-                        <div class="day-limits-row">
-                            <span class="day-name">Perşembe</span>
-                            <div class="day-inputs">
-                                <input type="number" id="limit-thu-cal" placeholder="Kalori">
-                                <input type="number" id="limit-thu-prot" placeholder="Protein">
-                            </div>
-                        </div>
-                        <!-- Cuma -->
-                        <div class="day-limits-row">
-                            <span class="day-name">Cuma</span>
-                            <div class="day-inputs">
-                                <input type="number" id="limit-fri-cal" placeholder="Kalori">
-                                <input type="number" id="limit-fri-prot" placeholder="Protein">
-                            </div>
-                        </div>
-                        <!-- Cumartesi -->
-                        <div class="day-limits-row">
-                            <span class="day-name">Cumartesi</span>
-                            <div class="day-inputs">
-                                <input type="number" id="limit-sat-cal" placeholder="Kalori">
-                                <input type="number" id="limit-sat-prot" placeholder="Protein">
-                            </div>
-                        </div>
-                        <!-- Pazar -->
-                        <div class="day-limits-row">
-                            <span class="day-name">Pazar</span>
-                            <div class="day-inputs">
-                                <input type="number" id="limit-sun-cal" placeholder="Kalori">
-                                <input type="number" id="limit-sun-prot" placeholder="Protein">
+
+                            <div class="study-add-subject-form">
+                                <input type="text" id="newSubjectNameInput" placeholder="Yeni Ders Adı (örn: Matematik)">
+                                <button type="button" onclick="addStudySubject()">Ders Ekle</button>
                             </div>
                         </div>
                     </div>
 
-                    <h3 style="margin-top: 25px;">Ders Çalışma Müfredatı</h3>
-                    <p class="subtitle" style="text-align: left; margin-bottom: 10px;">Derslerinizi ve konularınızı buradan yönetebilirsiniz. Değişiklikler arka planda otomatik olarak Obsidian formatında kaydedilir.</p>
-                    
-                    <div id="mufredatBuilderContainer">
-                        <div class="empty-notifications">Müfredat yükleniyor...</div>
-                    </div>
-
-                    <div class="study-add-subject-form">
-                        <input type="text" id="newSubjectNameInput" placeholder="Yeni Ders Adı (örn: Matematik)">
-                        <button type="button" onclick="addStudySubject()">Ders Ekle</button>
-                    </div>
-                    
-                    <button onclick="saveSettings()">Hedefleri Kaydet</button>
                 </div>
             </div>
         </div>
@@ -1775,6 +1850,17 @@
             topic.checked = !topic.checked;
             renderMufredatBuilder();
             await saveMufredatData(`Konu tamamlanma durumu değiştirildi: ${topic.name} (${topic.checked ? 'Tamamlandı' : 'Tamamlanmadı'})`);
+        }
+
+        function toggleAccordion(id) {
+            const body = document.getElementById(id);
+            const icon = document.getElementById(id + '-icon');
+            if (body) {
+                body.classList.toggle('collapsed');
+            }
+            if (icon) {
+                icon.classList.toggle('rotated');
+            }
         }
 
         // --- OBSIDIAN MARKDOWN PARSER & SYNC (TELEFON ÜZERİNDE) ---
