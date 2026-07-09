@@ -4,7 +4,7 @@ import base64
 import asyncio
 from typing import Optional, List, Dict
 import requests
-from fastapi import FastAPI, HTTPException, Header
+from fastapi import FastAPI, HTTPException, Header, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
@@ -354,6 +354,7 @@ async def process_user_input(
 @app.get("/api/file/{filename}")
 def get_file_content(
     filename: str,
+    response: Response,
     x_github_token: Optional[str] = Header(None),
     x_github_owner: Optional[str] = Header(None),
     x_github_repo: Optional[str] = Header(None)
@@ -361,6 +362,12 @@ def get_file_content(
     """GitHub'dan belirtilen dosyanın içeriğini okur (PWA istemcisinin alabilmesi için)."""
     if filename not in ["Hedefler.md", "Yemek_Log.md", "Aliskanliklar.md", "Mufredat.md", "Spor.md"]:
         raise HTTPException(status_code=403, detail="Erişim engellendi.")
+        
+    # Tarayıcı önbelleklemesini tamamen kapat
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+
     content, _ = get_github_file(filename, gh_token=x_github_token, gh_owner=x_github_owner, gh_repo=x_github_repo)
     return {"content": content}
 

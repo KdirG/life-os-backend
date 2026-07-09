@@ -33,8 +33,8 @@ self.addEventListener('activate', e => {
 
 // Arama Aşaması - Network-First Stratejisi
 self.addEventListener('fetch', e => {
-  // Sadece GET ve HTTP/HTTPS isteklerini önbelleğe al
-  if (e.request.method !== 'GET' || !e.request.url.startsWith('http')) {
+  // Sadece GET ve HTTP/HTTPS isteklerini önbelleğe al, API isteklerini önbelleğe alma!
+  if (e.request.method !== 'GET' || !e.request.url.startsWith('http') || e.request.url.includes('/api/')) {
     return;
   }
   
