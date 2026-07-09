@@ -1,4 +1,4 @@
-const CACHE_NAME = 'lifeos-cache-v2';
+const CACHE_NAME = 'lifeos-cache-v3';
 const ASSETS = [
   'index.html',
   'manifest.json'
