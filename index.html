@@ -679,6 +679,167 @@
             box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
         }
 
+        /* Müfredat Planlayıcı Tasarımı */
+        .study-subject-card {
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 16px;
+            margin-top: 15px;
+            text-align: left;
+        }
+
+        .study-subject-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .study-subject-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .study-subject-pct {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--neon-blue);
+            background: rgba(59, 130, 246, 0.1);
+            padding: 3px 8px;
+            border-radius: 20px;
+        }
+
+        .study-topic-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(30, 41, 59, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 10px 12px;
+            border-radius: 10px;
+            margin-top: 8px;
+        }
+
+        .study-topic-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-grow: 1;
+        }
+
+        .study-topic-left input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--neon-blue);
+        }
+
+        .study-topic-name {
+            font-size: 0.85rem;
+            color: #cbd5e1;
+        }
+
+        .study-topic-item.completed .study-topic-name {
+            text-decoration: line-through;
+            color: #64748b;
+        }
+
+        .study-topic-badges {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .study-badge-priority {
+            font-size: 0.7rem;
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            padding: 2px 6px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        .study-topic-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .study-btn-delete {
+            background: none !important;
+            border: none !important;
+            color: #94a3b8 !important;
+            cursor: pointer;
+            padding: 4px !important;
+            margin: 0 !important;
+            display: flex;
+            align-items: center;
+            width: auto !important;
+        }
+
+        .study-btn-delete:hover {
+            color: #f87171 !important;
+        }
+
+        .study-add-topic-form {
+            display: flex;
+            gap: 6px;
+            margin-top: 12px;
+        }
+
+        .study-add-topic-form input {
+            flex-grow: 1;
+            padding: 8px !important;
+            font-size: 0.8rem !important;
+            margin: 0 !important;
+        }
+
+        .study-add-topic-form select {
+            width: 90px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--glass-border);
+            color: white;
+            padding: 8px;
+            font-size: 0.8rem;
+            border-radius: 8px;
+        }
+
+        .study-add-topic-form button {
+            width: 44px !important;
+            padding: 8px !important;
+            margin: 0 !important;
+            background: var(--neon-blue);
+            color: white;
+            font-weight: bold;
+            border-radius: 8px;
+        }
+
+        .study-add-subject-form {
+            display: flex;
+            gap: 8px;
+            margin-top: 20px;
+            background: rgba(15, 23, 42, 0.2);
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px dashed var(--glass-border);
+        }
+
+        .study-add-subject-form input {
+            flex-grow: 1;
+            margin: 0 !important;
+            padding: 10px !important;
+        }
+
+        .study-add-subject-form button {
+            width: 100px !important;
+            margin: 0 !important;
+            padding: 10px !important;
+            font-size: 0.85rem !important;
+        }
+
         /* --- ALT NAVİGASYON BAR (BOTTOM NAV) --- */
         .bottom-nav {
             position: fixed;
@@ -909,8 +1070,16 @@
                     </div>
 
                     <h3 style="margin-top: 25px;">Ders Çalışma Müfredatı</h3>
-                    <label for="curriculumInput">Müfredat İçeriği (Obsidian Markdown formatında):</label>
-                    <textarea id="curriculumInput" style="height: 180px; font-family: monospace;" placeholder="# Matematik&#10;- [ ] Limit&#10;- [ ] Türev&#10;- [ ] İntegral&#10;&#10;# Fizik&#10;- [ ] Vektörler"></textarea>
+                    <p class="subtitle" style="text-align: left; margin-bottom: 10px;">Derslerinizi ve konularınızı buradan yönetebilirsiniz. Değişiklikler arka planda otomatik olarak Obsidian formatında kaydedilir.</p>
+                    
+                    <div id="mufredatBuilderContainer">
+                        <div class="empty-notifications">Müfredat yükleniyor...</div>
+                    </div>
+
+                    <div class="study-add-subject-form">
+                        <input type="text" id="newSubjectNameInput" placeholder="Yeni Ders Adı (örn: Matematik)">
+                        <button type="button" onclick="addStudySubject()">Ders Ekle</button>
+                    </div>
                     
                     <button onclick="saveSettings()">Hedefleri Kaydet</button>
                 </div>
@@ -1127,12 +1296,8 @@
                 if (protEl) protEl.value = weeklyLimits[d]?.protein || 140;
             });
 
-            // Müfredat içeriğini yükle
-            fetchJson(`${BACKEND_URL}/api/file/Mufredat.md`)
-                .then(data => {
-                    document.getElementById('curriculumInput').value = data.content;
-                })
-                .catch(err => console.log("Müfredat dosyası henüz yok veya okunamadı:", err));
+            // Müfredat içeriğini yükle ve GUI planlayıcıyı doldur
+            loadMufredatBuilder();
 
             // PWA Service Worker
             if ('serviceWorker' in navigator) {
@@ -1181,7 +1346,6 @@
             let inputVal = backendUrlInput.value.trim();
             const geminiKeyVal = geminiApiKeyInput.value.trim();
             const habitVal = document.getElementById('habitListInput').value.trim();
-            const curriculumVal = document.getElementById('curriculumInput').value;
             
             if (inputVal) {
                 if (inputVal.endsWith('/')) {
@@ -1204,18 +1368,6 @@
                 newWeeklyLimits[d] = { calories: calVal, protein: protVal };
             });
             localStorage.setItem('weekly_limits', JSON.stringify(newWeeklyLimits));
-
-            // Müfredatı kaydet
-            fetchJson(`${BACKEND_URL}/api/file/Mufredat.md`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    content: curriculumVal,
-                    message: "Müfredat elle güncellendi (Arayüz)"
-                })
-            }).catch(err => console.error("Müfredat kaydedilemedi:", err));
             
             statusMsg.innerText = "Ayarlar kaydedildi. Yeniden başlatılıyor...";
             
@@ -1380,6 +1532,249 @@
                 console.error("Alışkanlık kaydedilemedi:", err);
                 statusMsg.innerText = "Hata: Alışkanlık kaydedilemedi: " + err.message;
             }
+        }
+
+        // --- DERS ÇALIŞMA MÜFREDAT PLANLAYICI (GUI) LOGIC ---
+        let mufredatData = [];
+
+        async function loadMufredatBuilder() {
+            const container = document.getElementById('mufredatBuilderContainer');
+            if (!container) return;
+
+            try {
+                let data = { content: "" };
+                try {
+                    data = await fetchJson(`${BACKEND_URL}/api/file/Mufredat.md`);
+                } catch (e) {
+                    console.log("Mufredat.md bulunamadı veya henüz oluşturulmadı.");
+                }
+                
+                mufredatData = parseMufredatMarkdown(data.content);
+                renderMufredatBuilder();
+            } catch (err) {
+                console.error("Müfredat yüklenemedi:", err);
+                container.innerHTML = `<div class="empty-notifications" style="color:var(--neon-red);">Hata: Müfredat yüklenemedi.</div>`;
+            }
+        }
+
+        function parseMufredatMarkdown(markdown) {
+            if (!markdown) return [];
+            const lines = markdown.split('\n');
+            const subjects = [];
+            let currentSubject = null;
+            
+            lines.forEach(line => {
+                const trimmed = line.trim();
+                if (trimmed.startsWith('# ')) {
+                    const subjectName = trimmed.substring(2).trim();
+                    currentSubject = { name: subjectName, topics: [] };
+                    subjects.push(currentSubject);
+                } else if (trimmed.startsWith('- [ ]') || trimmed.startsWith('- [x]')) {
+                    if (!currentSubject) return;
+                    
+                    const isChecked = trimmed.startsWith('- [x]');
+                    let rest = trimmed.substring(5).trim();
+                    
+                    let priority = "Normal";
+                    const priorityMatch = rest.match(/\[Önem:\s*([^\]]+)\]/i);
+                    if (priorityMatch) {
+                        priority = priorityMatch[1];
+                        rest = rest.replace(priorityMatch[0], "").trim();
+                    }
+                    
+                    let note = "";
+                    const noteMatch = rest.match(/\[Not:\s*([^\]]+)\]/i);
+                    if (noteMatch) {
+                        note = noteMatch[1];
+                        rest = rest.replace(noteMatch[0], "").trim();
+                    }
+                    
+                    const topicName = rest.trim();
+                    currentSubject.topics.push({
+                        name: topicName,
+                        checked: isChecked,
+                        priority: priority,
+                        note: note
+                    });
+                }
+            });
+            return subjects;
+        }
+
+        function serializeMufredatToMarkdown(subjects) {
+            let markdown = "";
+            subjects.forEach(subj => {
+                markdown += `# ${subj.name}\n`;
+                subj.topics.forEach(top => {
+                    const checkStr = top.checked ? "x" : " ";
+                    let line = `- [${checkStr}] ${top.name}`;
+                    if (top.priority && top.priority !== "Normal") {
+                        line += ` [Önem: ${top.priority}]`;
+                    }
+                    if (top.note) {
+                        line += ` [Not: ${top.note}]`;
+                    }
+                    markdown += `${line}\n`;
+                });
+                markdown += "\n";
+            });
+            return markdown.trim();
+        }
+
+        function renderMufredatBuilder() {
+            const container = document.getElementById('mufredatBuilderContainer');
+            if (!container) return;
+
+            container.innerHTML = "";
+            if (mufredatData.length === 0) {
+                container.innerHTML = `<div class="empty-notifications">Henüz eklenmiş bir ders yok. Aşağıdan yeni ders ekleyin!</div>`;
+                return;
+            }
+
+            mufredatData.forEach((subj, subjIdx) => {
+                let total = subj.topics.length;
+                let checked = subj.topics.filter(t => t.checked).length;
+                let pct = total > 0 ? Math.round((checked / total) * 100) : 0;
+
+                const card = document.createElement('div');
+                card.className = 'study-subject-card';
+                
+                let html = `
+                    <div class="study-subject-header">
+                        <span class="study-subject-title">${subj.name}</span>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span class="study-subject-pct">%${pct}</span>
+                            <button class="study-btn-delete" onclick="deleteStudySubject(${subjIdx})" title="Dersi Sil">
+                                <svg viewBox="0 0 24 24" style="width:16px; height:16px; fill:currentColor;"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div style="width: 100%; height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; overflow: hidden; margin-bottom: 12px;">
+                        <div style="width: ${pct}%; height: 100%; background: var(--neon-blue); transition: width 0.3s ease;"></div>
+                    </div>
+                `;
+
+                if (subj.topics.length === 0) {
+                    html += `<div class="empty-notifications" style="padding: 10px 0; font-size: 0.8rem;">Bu derse ait konu eklenmemiş.</div>`;
+                } else {
+                    subj.topics.forEach((topic, topicIdx) => {
+                        const isCompletedClass = topic.checked ? 'completed' : '';
+                        const priorityBadge = topic.priority === 'Yüksek' ? `<span class="study-badge-priority">⭐ Önemli</span>` : '';
+                        const noteText = topic.note ? `<span style="font-size:0.75rem; color:#64748b; margin-left:8px;">(${topic.note})</span>` : '';
+
+                        html += `
+                            <div class="study-topic-item ${isCompletedClass}">
+                                <div class="study-topic-left">
+                                    <input type="checkbox" ${topic.checked ? 'checked' : ''} onchange="toggleMufredatTopic(${subjIdx}, ${topicIdx})">
+                                    <span class="study-topic-name">${topic.name}${noteText}</span>
+                                </div>
+                                <div class="study-topic-actions">
+                                    ${priorityBadge}
+                                    <button class="study-btn-delete" onclick="deleteMufredatTopic(${subjIdx}, ${topicIdx})" title="Konuyu Sil">
+                                        <svg viewBox="0 0 24 24" style="width:14px; height:14px; fill:currentColor;"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+
+                html += `
+                    <div class="study-add-topic-form">
+                        <input type="text" id="new-topic-name-${subjIdx}" placeholder="Yeni konu adı...">
+                        <select id="new-topic-priority-${subjIdx}">
+                            <option value="Normal">Normal</option>
+                            <option value="Yüksek">Önemli</option>
+                        </select>
+                        <button type="button" onclick="addMufredatTopic(${subjIdx})">+</button>
+                    </div>
+                `;
+
+                card.innerHTML = html;
+                container.appendChild(card);
+            });
+        }
+
+        async function saveMufredatData(message = "Müfredat güncellendi (Arayüz)") {
+            try {
+                const markdown = serializeMufredatToMarkdown(mufredatData);
+                
+                await fetchJson(`${BACKEND_URL}/api/file/Mufredat.md`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        content: markdown,
+                        message: message
+                    })
+                });
+
+                statusMsg.innerText = "Müfredat değişiklikleri kaydedildi.";
+            } catch (err) {
+                console.error("Müfredat kaydedilemedi:", err);
+                statusMsg.innerText = "Hata: Müfredat kaydedilemedi.";
+            }
+        }
+
+        async function addStudySubject() {
+            const input = document.getElementById('newSubjectNameInput');
+            if (!input) return;
+
+            const name = input.value.trim();
+            if (!name) return;
+
+            mufredatData.push({
+                name: name,
+                topics: []
+            });
+
+            input.value = "";
+            renderMufredatBuilder();
+            await saveMufredatData(`Yeni ders eklendi: ${name}`);
+        }
+
+        async function deleteStudySubject(subjIdx) {
+            const name = mufredatData[subjIdx].name;
+            if (!confirm(`"${name}" dersini ve tüm konularını silmek istediğinize emin misiniz?`)) return;
+
+            mufredatData.splice(subjIdx, 1);
+            renderMufredatBuilder();
+            await saveMufredatData(`Ders silindi: ${name}`);
+        }
+
+        async function addMufredatTopic(subjIdx) {
+            const nameInput = document.getElementById(`new-topic-name-${subjIdx}`);
+            const prioSelect = document.getElementById(`new-topic-priority-${subjIdx}`);
+            if (!nameInput) return;
+
+            const name = nameInput.value.trim();
+            if (!name) return;
+
+            const priority = prioSelect ? prioSelect.value : "Normal";
+
+            mufredatData[subjIdx].topics.push({
+                name: name,
+                checked: false,
+                priority: priority,
+                note: ""
+            });
+
+            nameInput.value = "";
+            renderMufredatBuilder();
+            await saveMufredatData(`Konu eklendi: ${mufredatData[subjIdx].name} -> ${name}`);
+        }
+
+        async function deleteMufredatTopic(subjIdx, topicIdx) {
+            const topicName = mufredatData[subjIdx].topics[topicIdx].name;
+            mufredatData[subjIdx].topics.splice(topicIdx, 1);
+            renderMufredatBuilder();
+            await saveMufredatData(`Konu silindi: ${topicName}`);
+        }
+
+        async function toggleMufredatTopic(subjIdx, topicIdx) {
+            const topic = mufredatData[subjIdx].topics[topicIdx];
+            topic.checked = !topic.checked;
+            renderMufredatBuilder();
+            await saveMufredatData(`Konu tamamlanma durumu değiştirildi: ${topic.name} (${topic.checked ? 'Tamamlandı' : 'Tamamlanmadı'})`);
         }
 
         // --- OBSIDIAN MARKDOWN PARSER & SYNC (TELEFON ÜZERİNDE) ---
@@ -2064,10 +2459,9 @@
                     
                     const progressPct = calculateStudyProgress(updatedMarkdown);
                     
-                    const curriculumInput = document.getElementById('curriculumInput');
-                    if (curriculumInput) {
-                        curriculumInput.value = updatedMarkdown;
-                    }
+                    // Müfredat verisini ve arayüzünü güncelle
+                    mufredatData = parseMufredatMarkdown(updatedMarkdown);
+                    renderMufredatBuilder();
                     
                     statusMsg.innerText = `Tebrikler! ${parsedResult.study_subject || "Genel"} dersinden '${parsedResult.study_topic || text}' tamamlandı. Müfredat ilerlemesi: %${progressPct}`;
                     document.getElementById('textInput').value = "";
