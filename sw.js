@@ -1,4 +1,4 @@
-const CACHE_NAME = 'lifeos-cache-v1';
+const CACHE_NAME = 'lifeos-cache-v2';
 const ASSETS = [
   'index.html',
   'manifest.json'
@@ -31,17 +31,34 @@ self.addEventListener('activate', e => {
   );
 });
 
-// Arama Aşaması - Ağ veya Önbellek Stratejisi
+// Arama Aşaması - Network-First Stratejisi
 self.addEventListener('fetch', e => {
+  // Sadece GET ve HTTP/HTTPS isteklerini önbelleğe al
+  if (e.request.method !== 'GET' || !e.request.url.startsWith('http')) {
+    return;
+  }
+  
   e.respondWith(
-    caches.match(e.request).then(response => {
-      return response || fetch(e.request).catch(() => {
-        return new Response("Bağlantı bulunamadı ve önbellekte veri yok.", {
-          status: 503,
-          statusText: "Service Unavailable"
+    fetch(e.request)
+      .then(response => {
+        // İstek başarılıysa önbelleği güncelle
+        if (response.status === 200) {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(e.request, responseClone);
+          });
+        }
+        return response;
+      })
+      .catch(() => {
+        // İnternet yoksa önbellekten oku
+        return caches.match(e.request).then(cachedResponse => {
+          return cachedResponse || new Response("İnternet bağlantısı yok ve önbellekte veri bulunamadı.", {
+            status: 503,
+            statusText: "Offline"
+          });
         });
-      });
-    })
+      })
   );
 });
 

@@ -1175,6 +1175,18 @@
                     <label for="geminiApiKeyInput">Google Gemini API Key (Cihazınızda Çalışır):</label>
                     <input type="password" id="geminiApiKeyInput" placeholder="AIzaSy...">
 
+                    <h3 style="margin-top: 25px;">Kişisel GitHub Kasası Ayarları</h3>
+                    <p class="subtitle" style="text-align: left; margin-top: 5px; font-size: 0.8rem; margin-bottom: 12px;">Arkadaşınızın kendi verilerini kaydetmesi için burayı doldurması gerekir. Boş bırakılırsa varsayılan depo kullanılır.</p>
+                    
+                    <label for="githubTokenInput">GitHub Personal Access Token:</label>
+                    <input type="password" id="githubTokenInput" placeholder="ghp_...">
+
+                    <label for="githubOwnerInput">GitHub Kullanıcı Adı (Owner):</label>
+                    <input type="text" id="githubOwnerInput" placeholder="Kullanıcı Adı">
+
+                    <label for="githubRepoInput">GitHub Depo Adı (Repo):</label>
+                    <input type="text" id="githubRepoInput" placeholder="life-os-data">
+
                     <h3 style="margin-top: 25px;">Alışkanlık Takipçisi Ayarları</h3>
                     <label for="habitListInput">Alışkanlık Listeniz (virgülle ayırarak girin):</label>
                     <input type="text" id="habitListInput" placeholder="Kitap Okuma, Yazılım Çalışma, Spor, Vitamin">
@@ -1361,6 +1373,9 @@
             backendUrlInput.value = BACKEND_URL;
             geminiApiKeyInput.value = localStorage.getItem('gemini_api_key') || "";
             document.getElementById('habitListInput').value = localStorage.getItem('habit_list') || "Kitap Okuma, Yazılım Çalışma, Spor, Vitamin";
+            document.getElementById('githubTokenInput').value = localStorage.getItem('github_token') || "";
+            document.getElementById('githubOwnerInput').value = localStorage.getItem('github_owner') || "";
+            document.getElementById('githubRepoInput').value = localStorage.getItem('github_repo') || "";
 
             // Haftalık limitleri form alanlarına doldur
             const weeklyLimits = JSON.parse(localStorage.getItem('weekly_limits') || '{}');
@@ -1421,6 +1436,9 @@
             let inputVal = backendUrlInput.value.trim();
             const geminiKeyVal = geminiApiKeyInput.value.trim();
             const habitVal = document.getElementById('habitListInput').value.trim();
+            const ghToken = document.getElementById('githubTokenInput').value.trim();
+            const ghOwner = document.getElementById('githubOwnerInput').value.trim();
+            const ghRepo = document.getElementById('githubRepoInput').value.trim();
             
             if (inputVal) {
                 if (inputVal.endsWith('/')) {
@@ -1432,6 +1450,9 @@
             
             localStorage.setItem('gemini_api_key', geminiKeyVal);
             localStorage.setItem('habit_list', habitVal || "Kitap Okuma, Yazılım Çalışma, Spor, Vitamin");
+            localStorage.setItem('github_token', ghToken);
+            localStorage.setItem('github_owner', ghOwner);
+            localStorage.setItem('github_repo', ghRepo);
 
             // Haftalık limitleri oku ve kaydet
             let newWeeklyLimits = {};
@@ -1453,6 +1474,26 @@
 
         // --- GÜVENLİ VE DETAYLI FETCH YARDIMCISI ---
         async function fetchJson(url, options = {}) {
+            // Eğer istek bizim backend adresimize gidiyorsa, kullanıcının kişisel GitHub ayarlarını header'lara ekleyelim
+            if (url.startsWith(BACKEND_URL)) {
+                if (!options.headers) {
+                    options.headers = {};
+                }
+                const ghToken = localStorage.getItem('github_token') || "";
+                const ghOwner = localStorage.getItem('github_owner') || "";
+                const ghRepo = localStorage.getItem('github_repo') || "";
+
+                if (options.headers instanceof Headers) {
+                    if (ghToken) options.headers.set('X-GitHub-Token', ghToken);
+                    if (ghOwner) options.headers.set('X-GitHub-Owner', ghOwner);
+                    if (ghRepo)  options.headers.set('X-GitHub-Repo', ghRepo);
+                } else {
+                    if (ghToken) options.headers['X-GitHub-Token'] = ghToken;
+                    if (ghOwner) options.headers['X-GitHub-Owner'] = ghOwner;
+                    if (ghRepo)  options.headers['X-GitHub-Repo'] = ghRepo;
+                }
+            }
+
             try {
                 const response = await fetch(url, options);
                 const text = await response.text();

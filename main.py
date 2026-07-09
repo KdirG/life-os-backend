@@ -94,15 +94,24 @@ class SubscriptionModel(BaseModel):
     keys: Dict[str, str]
 
 # --- GitHub API Helpers ---
-def get_github_file(path: str) -> tuple[str, Optional[str]]:
+def get_github_file(
+    path: str,
+    gh_token: Optional[str] = None,
+    gh_owner: Optional[str] = None,
+    gh_repo: Optional[str] = None
+) -> tuple[str, Optional[str]]:
     """Belirtilen pathteki dosyayı GitHub reposundan çeker. Dosya içeriğini ve SHA değerini döndürür."""
-    if not GITHUB_TOKEN or not GITHUB_REPO_OWNER or not GITHUB_REPO_NAME:
-        print("[HATA] GitHub API ayarları (.env) eksik!")
+    token = gh_token if gh_token else GITHUB_TOKEN
+    owner = gh_owner if gh_owner else GITHUB_REPO_OWNER
+    repo = gh_repo if gh_repo else GITHUB_REPO_NAME
+
+    if not token or not owner or not repo:
+        print("[HATA] GitHub API ayarları (headers veya .env) eksik!")
         return "", None
         
-    url = f"https://api.github.com/repos/{GITHUB_REPO_OWNER}/{GITHUB_REPO_NAME}/contents/{path}"
+    url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
     headers = {
-        "Authorization": f"token {GITHUB_TOKEN}",
+        "Authorization": f"token {token}",
         "Accept": "application/vnd.github.v3+json"
     }
     r = requests.get(url, headers=headers)
@@ -116,15 +125,27 @@ def get_github_file(path: str) -> tuple[str, Optional[str]]:
         print(f"[GITHUB API HATA] Durum kodu: {r.status_code}, Cevap: {r.text}")
         return "", None
 
-def update_github_file(path: str, content: str, sha: Optional[str] = None, message: str = "Life OS Güncellemesi") -> bool:
+def update_github_file(
+    path: str,
+    content: str,
+    sha: Optional[str] = None,
+    message: str = "Life OS Güncellemesi",
+    gh_token: Optional[str] = None,
+    gh_owner: Optional[str] = None,
+    gh_repo: Optional[str] = None
+) -> bool:
     """Belirtilen pathteki dosyayı GitHub reposunda günceller veya yoksa oluşturur."""
-    if not GITHUB_TOKEN or not GITHUB_REPO_OWNER or not GITHUB_REPO_NAME:
-        print("[HATA] GitHub API ayarları (.env) eksik!")
+    token = gh_token if gh_token else GITHUB_TOKEN
+    owner = gh_owner if gh_owner else GITHUB_REPO_OWNER
+    repo = gh_repo if gh_repo else GITHUB_REPO_NAME
+
+    if not token or not owner or not repo:
+        print("[HATA] GitHub API ayarları (headers veya .env) eksik!")
         return False
         
-    url = f"https://api.github.com/repos/{GITHUB_REPO_OWNER}/{GITHUB_REPO_NAME}/contents/{path}"
+    url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
     headers = {
-        "Authorization": f"token {GITHUB_TOKEN}",
+        "Authorization": f"token {token}",
         "Accept": "application/vnd.github.v3+json"
     }
     payload = {
@@ -142,7 +163,13 @@ def update_github_file(path: str, content: str, sha: Optional[str] = None, messa
         return False
 
 # --- ntfy.sh & Web Push Notification ---
-def send_push_notification(title: str, message: str):
+def send_push_notification(
+    title: str,
+    message: str,
+    gh_token: Optional[str] = None,
+    gh_owner: Optional[str] = None,
+    gh_repo: Optional[str] = None
+):
     """ntfy.sh ve tarayıcı native Web Push üzerinden telefona bildirim gönderir."""
     # 1. ntfy.sh Bildirimi (Opsiyonel)
     if NTFY_TOPIC:
@@ -163,7 +190,7 @@ def send_push_notification(title: str, message: str):
         return
         
     path = "Subscribers.json"
-    content, _ = get_github_file(path)
+    content, _ = get_github_file(path, gh_token=gh_token, gh_owner=gh_owner, gh_repo=gh_repo)
     if not content:
         return
         
@@ -203,7 +230,12 @@ def send_push_notification(title: str, message: str):
 # --- API Uç Noktaları ---
 
 @app.post("/api/process")
-async def process_user_input(result: ParsedIntent):
+async def process_user_input(
+    result: ParsedIntent,
+    x_github_token: Optional[str] = Header(None),
+    x_github_owner: Optional[str] = Header(None),
+    x_github_repo: Optional[str] = Header(None)
+):
     """Telefon tarafından Gemini ile çözümlenmiş hazır JSON nesnesini alır ve işler."""
     
     if result.intent == "nutrition":
@@ -211,7 +243,7 @@ async def process_user_input(result: ParsedIntent):
             raise HTTPException(status_code=400, detail="Besin öğeleri ayrıştırılamadı veya tahmin edilemedi.")
             
         path = "Yemek_Log.md"
-        content, sha = get_github_file(path)
+        content, sha = get_github_file(path, gh_token=x_github_token, gh_owner=x_github_owner, gh_repo=x_github_repo)
         
         import datetime
         today_str = datetime.date.today().isoformat()
@@ -264,13 +296,14 @@ async def process_user_input(result: ParsedIntent):
             if len(body_parts) > 2:
                 new_content += "---" + "---".join(body_parts[2:])
                 
-        update_github_file(path, new_content, sha, message=f"Yemek eklendi: {result.extracted_text}")
+        update_github_file(path, new_content, sha, message=f"Yemek eklendi: {result.extracted_text}", gh_token=x_github_token, gh_owner=x_github_owner, gh_repo=x_github_repo)
         
         food_summary = ", ".join([f"{f.weight_g}g {f.name}" for f in result.nutrition_items])
         send_push_notification(
             "Yemek Eklendi 🍎", 
             f"{food_summary} (+{day_calories:.0f} kcal)\n"
-            f"Günlük Toplam: {cumulative_calories:.0f} kcal | P: {cumulative_protein:.0f}g | Y: {cumulative_fat:.0f}g | K: {cumulative_carbs:.0f}g"
+            f"Günlük Toplam: {cumulative_calories:.0f} kcal | P: {cumulative_protein:.0f}g | Y: {cumulative_fat:.0f}g | K: {cumulative_carbs:.0f}g",
+            gh_token=x_github_token, gh_owner=x_github_owner, gh_repo=x_github_repo
         )
         return {"status": "success", "intent": "nutrition", "data": result.nutrition_items}
         
@@ -279,10 +312,10 @@ async def process_user_input(result: ParsedIntent):
             raise HTTPException(status_code=400, detail="Güncellenmiş hedef belgesi bulunamadı.")
             
         path = "Hedefler.md"
-        _, sha = get_github_file(path)
+        _, sha = get_github_file(path, gh_token=x_github_token, gh_owner=x_github_owner, gh_repo=x_github_repo)
         
-        update_github_file(path, result.updated_file_content, sha, message=f"Hedef güncellendi: {result.goal_query}")
-        send_push_notification("Life OS Hedef Güncelleme", f"Hedef güncellendi: {result.goal_query}")
+        update_github_file(path, result.updated_file_content, sha, message=f"Hedef güncellendi: {result.goal_query}", gh_token=x_github_token, gh_owner=x_github_owner, gh_repo=x_github_repo)
+        send_push_notification("Life OS Hedef Güncelleme", f"Hedef güncellendi: {result.goal_query}", gh_token=x_github_token, gh_owner=x_github_owner, gh_repo=x_github_repo)
         return {"status": "success", "intent": "goal_update"}
         
     elif result.intent == "pc_command":
@@ -294,12 +327,12 @@ async def process_user_input(result: ParsedIntent):
             "status": "pending"
         }
         pc_task_queue.append(task)
-        send_push_notification("Life OS PC Otomasyonu", f"PC kuyruğuna eklendi: {result.pc_action}")
+        send_push_notification("Life OS PC Otomasyonu", f"PC kuyruğuna eklendi: {result.pc_action}", gh_token=x_github_token, gh_owner=x_github_owner, gh_repo=x_github_repo)
         return {"status": "success", "intent": "pc_command", "task": task}
         
     elif result.intent == "custom_log":
         path = result.custom_file_name
-        content, sha = get_github_file(path)
+        content, sha = get_github_file(path, gh_token=x_github_token, gh_owner=x_github_owner, gh_repo=x_github_repo)
         
         import datetime
         today_str = datetime.date.today().isoformat()
@@ -312,18 +345,23 @@ async def process_user_input(result: ParsedIntent):
             else:
                 new_content = content.replace(f"## {today_str}", f"## {today_str}\n{result.custom_content}")
                 
-        update_github_file(path, new_content, sha, message=f"Özel Log Eklendi: {path}")
-        send_push_notification("Life OS Özel Log", f"{path} dosyasına veri yazıldı.")
+        update_github_file(path, new_content, sha, message=f"Özel Log Eklendi: {path}", gh_token=x_github_token, gh_owner=x_github_owner, gh_repo=x_github_repo)
+        send_push_notification("Life OS Özel Log", f"{path} dosyasına veri yazıldı.", gh_token=x_github_token, gh_owner=x_github_owner, gh_repo=x_github_repo)
         return {"status": "success", "intent": "custom_log", "file": path}
         
     return {"status": "unknown"}
 
 @app.get("/api/file/{filename}")
-def get_file_content(filename: str):
+def get_file_content(
+    filename: str,
+    x_github_token: Optional[str] = Header(None),
+    x_github_owner: Optional[str] = Header(None),
+    x_github_repo: Optional[str] = Header(None)
+):
     """GitHub'dan belirtilen dosyanın içeriğini okur (PWA istemcisinin alabilmesi için)."""
     if filename not in ["Hedefler.md", "Yemek_Log.md", "Aliskanliklar.md", "Mufredat.md"]:
         raise HTTPException(status_code=403, detail="Erişim engellendi.")
-    content, _ = get_github_file(filename)
+    content, _ = get_github_file(filename, gh_token=x_github_token, gh_owner=x_github_owner, gh_repo=x_github_repo)
     return {"content": content}
 
 class FileUpdateModel(BaseModel):
@@ -331,21 +369,27 @@ class FileUpdateModel(BaseModel):
     message: Optional[str] = "Dosya güncellendi"
 
 @app.post("/api/file/{filename}")
-def save_file_content(filename: str, payload: FileUpdateModel):
+def save_file_content(
+    filename: str,
+    payload: FileUpdateModel,
+    x_github_token: Optional[str] = Header(None),
+    x_github_owner: Optional[str] = Header(None),
+    x_github_repo: Optional[str] = Header(None)
+):
     """GitHub'daki dosya içeriğini doğrudan günceller (PWA'den gelen düzenleme/silmeler için)."""
     if filename not in ["Hedefler.md", "Yemek_Log.md", "Aliskanliklar.md", "Mufredat.md"]:
         raise HTTPException(status_code=403, detail="Erişim engellendi.")
-    _, sha = get_github_file(filename)
-    success = update_github_file(filename, payload.content, sha, message=payload.message)
+    _, sha = get_github_file(filename, gh_token=x_github_token, gh_owner=x_github_owner, gh_repo=x_github_repo)
+    success = update_github_file(filename, payload.content, sha, message=payload.message, gh_token=x_github_token, gh_owner=x_github_owner, gh_repo=x_github_repo)
     if not success:
         raise HTTPException(status_code=500, detail="Dosya güncellenirken GitHub hatası oluştu.")
     
     if filename == "Yemek_Log.md":
-        send_push_notification("Life OS Güncelleme 📝", "Yemek günlüğü başarıyla güncellendi.")
+        send_push_notification("Life OS Güncelleme 📝", "Yemek günlüğü başarıyla güncellendi.", gh_token=x_github_token, gh_owner=x_github_owner, gh_repo=x_github_repo)
     elif filename == "Aliskanliklar.md":
-        send_push_notification("Alışkanlık Güncellendi ✅", "Günlük alışkanlık durumunuz kaydedildi.")
+        send_push_notification("Alışkanlık Güncellendi ✅", "Günlük alışkanlık durumunuz kaydedildi.", gh_token=x_github_token, gh_owner=x_github_owner, gh_repo=x_github_repo)
     elif filename == "Mufredat.md":
-        send_push_notification("Müfredat Güncellendi 📚", "Ders çalışma müfredatınız güncellendi.")
+        send_push_notification("Müfredat Güncellendi 📚", "Ders çalışma müfredatınız güncellendi.", gh_token=x_github_token, gh_owner=x_github_owner, gh_repo=x_github_repo)
         
     return {"status": "success"}
 
@@ -356,9 +400,14 @@ def get_vapid_public_key():
     return {"public_key": VAPID_PUBLIC_KEY}
 
 @app.post("/api/subscribe")
-def subscribe_client(subscription: SubscriptionModel):
+def subscribe_client(
+    subscription: SubscriptionModel,
+    x_github_token: Optional[str] = Header(None),
+    x_github_owner: Optional[str] = Header(None),
+    x_github_repo: Optional[str] = Header(None)
+):
     path = "Subscribers.json"
-    content, sha = get_github_file(path)
+    content, sha = get_github_file(path, gh_token=x_github_token, gh_owner=x_github_owner, gh_repo=x_github_repo)
     
     try:
         subs = json.loads(content) if content else []
@@ -369,7 +418,7 @@ def subscribe_client(subscription: SubscriptionModel):
     
     if sub_dict not in subs:
         subs.append(sub_dict)
-        update_github_file(path, json.dumps(subs, indent=2), sha, message="Yeni PWA abonesi eklendi")
+        update_github_file(path, json.dumps(subs, indent=2), sha, message="Yeni PWA abonesi eklendi", gh_token=x_github_token, gh_owner=x_github_owner, gh_repo=x_github_repo)
         print("[WEB PUSH] Yeni bir abone Subscribers.json dosyasına yazıldı.")
         
     return {"status": "subscribed"}
