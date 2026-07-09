@@ -359,7 +359,7 @@ def get_file_content(
     x_github_repo: Optional[str] = Header(None)
 ):
     """GitHub'dan belirtilen dosyanın içeriğini okur (PWA istemcisinin alabilmesi için)."""
-    if filename not in ["Hedefler.md", "Yemek_Log.md", "Aliskanliklar.md", "Mufredat.md"]:
+    if filename not in ["Hedefler.md", "Yemek_Log.md", "Aliskanliklar.md", "Mufredat.md", "Spor.md"]:
         raise HTTPException(status_code=403, detail="Erişim engellendi.")
     content, _ = get_github_file(filename, gh_token=x_github_token, gh_owner=x_github_owner, gh_repo=x_github_repo)
     return {"content": content}
@@ -377,7 +377,7 @@ def save_file_content(
     x_github_repo: Optional[str] = Header(None)
 ):
     """GitHub'daki dosya içeriğini doğrudan günceller (PWA'den gelen düzenleme/silmeler için)."""
-    if filename not in ["Hedefler.md", "Yemek_Log.md", "Aliskanliklar.md", "Mufredat.md"]:
+    if filename not in ["Hedefler.md", "Yemek_Log.md", "Aliskanliklar.md", "Mufredat.md", "Spor.md"]:
         raise HTTPException(status_code=403, detail="Erişim engellendi.")
     _, sha = get_github_file(filename, gh_token=x_github_token, gh_owner=x_github_owner, gh_repo=x_github_repo)
     success = update_github_file(filename, payload.content, sha, message=payload.message, gh_token=x_github_token, gh_owner=x_github_owner, gh_repo=x_github_repo)
@@ -390,6 +390,8 @@ def save_file_content(
         send_push_notification("Alışkanlık Güncellendi ✅", "Günlük alışkanlık durumunuz kaydedildi.", gh_token=x_github_token, gh_owner=x_github_owner, gh_repo=x_github_repo)
     elif filename == "Mufredat.md":
         send_push_notification("Müfredat Güncellendi 📚", "Ders çalışma müfredatınız güncellendi.", gh_token=x_github_token, gh_owner=x_github_owner, gh_repo=x_github_repo)
+    elif filename == "Spor.md":
+        send_push_notification("Spor Planı Güncellendi 🏋️", "Haftalık spor planınız başarıyla kaydedildi.", gh_token=x_github_token, gh_owner=x_github_owner, gh_repo=x_github_repo)
         
     return {"status": "success"}
 
