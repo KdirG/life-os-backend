@@ -1335,6 +1335,13 @@
                     <h3 style="margin-top: 25px;">Alışkanlık Takipçisi Ayarları</h3>
                     <label for="habitListInput">Alışkanlık Listeniz (virgülle ayırarak girin):</label>
                     <input type="text" id="habitListInput" placeholder="Kitap Okuma, Yazılım Çalışma, Spor, Vitamin">
+
+                    <h3 style="margin-top: 25px;">Uygulama Dili / Language</h3>
+                    <label for="languageSelect">Dil seçin / Select language:</label>
+                    <select id="languageSelect" onchange="changeLanguage(this.value)" style="margin-bottom: 20px; padding: 8px !important; font-size: 0.85rem !important; border: 1px solid var(--glass-border); border-radius: 8px; width: 100%; background: var(--input-bg); color: var(--text-main);">
+                        <option value="tr">Türkçe</option>
+                        <option value="en">English</option>
+                    </select>
                     
                     <button onclick="saveSettings()">Bağlantıyı Kaydet ve Yeniden Başlat</button>
                 </div>
@@ -1620,6 +1627,9 @@
 
             // Alışkanlıkları yükle
             loadAndParseHabits();
+
+            // Dil seçimini yükle
+            applyLanguage(localStorage.getItem('language') || 'tr');
         });
 
         // Sekme Değiştirme Mantığı
@@ -2239,6 +2249,7 @@
             
             container.innerHTML = "";
             const days = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"];
+            const t = TRANSLATIONS[currentLang];
             
             days.forEach(day => {
                 const dayExercises = sporPlanData[day] || [];
@@ -2255,8 +2266,9 @@
                 const totalCount = dayExercises.length;
                 const statsText = totalCount > 0 ? ` (${completedCount}/${totalCount})` : '';
                 
+                const translatedDay = t.days[day] || day;
                 header.innerHTML = `
-                    <span class="accordion-title">${day}${statsText}</span>
+                    <span class="accordion-title">${translatedDay}${statsText}</span>
                     <span class="accordion-icon" id="${bodyId}-icon">▼</span>
                 `;
                 
@@ -2270,7 +2282,7 @@
                 list.style.gap = '8px';
                 
                 if (dayExercises.length === 0) {
-                    list.innerHTML = `<div class="empty-notifications" style="padding: 10px; font-size: 0.8rem;">Bu gün için planlanan egzersiz yok (Dinlenme).</div>`;
+                    list.innerHTML = `<div class="empty-notifications" style="padding: 10px; font-size: 0.8rem;">${t.no_workout_planned}</div>`;
                 } else {
                     dayExercises.forEach((ex, exIdx) => {
                         const item = document.createElement('div');
@@ -2283,12 +2295,13 @@
                             showExerciseDetails(ex.exerciseName);
                         };
                         
+                        const metaText = ex.sets ? ex.sets : (currentLang === 'tr' ? 'Set belirtilmedi' : 'No sets specified');
                         item.innerHTML = `
                             <div class="exercise-left">
                                 <input type="checkbox" ${ex.completed ? 'checked' : ''} onchange="toggleExerciseCompletion('${day}', ${exIdx})">
                                 <div class="exercise-info">
                                     <span class="exercise-title">${ex.name}</span>
-                                    <span class="exercise-meta">${ex.sets ? ex.sets : 'Set belirtilmedi'}</span>
+                                    <span class="exercise-meta">${metaText}</span>
                                 </div>
                             </div>
                             <button class="study-btn-delete" onclick="deleteExercise('${day}', ${exIdx})" style="padding: 0 !important; margin: 0 !important;">
@@ -2309,14 +2322,14 @@
                 const setsId = `sets-ex-${day}`;
                 
                 form.innerHTML = `
-                    <div style="font-size: 0.8rem; font-weight: 700; margin-bottom: 4px; color: var(--text-main);">Egzersiz Ekle</div>
+                    <div style="font-size: 0.8rem; font-weight: 700; margin-bottom: 4px; color: var(--text-main);">${t.add_exercise_title}</div>
                     <div class="exercise-search-container">
-                        <input type="text" id="${searchId}" class="settings-panel input" placeholder="Egzersiz Ara..." oninput="handleExerciseSearchInput('${day}')" style="padding: 8px !important; font-size: 0.8rem !important; width: 100% !important;">
+                        <input type="text" id="${searchId}" class="settings-panel input" placeholder="${t.placeholder_search_ex}" oninput="handleExerciseSearchInput('${day}')" style="padding: 8px !important; font-size: 0.8rem !important; width: 100% !important;">
                         <div id="${suggestionsId}" class="exercise-suggestions"></div>
                     </div>
                     <div style="display: flex; gap: 8px; margin-top: 6px;">
-                        <input type="text" id="${setsId}" placeholder="Set / Tekrar (örn: 3x12)" style="flex-grow: 1; padding: 8px !important; font-size: 0.8rem !important; margin: 0 !important;">
-                        <button type="button" onclick="addExerciseToPlan('${day}')" style="width: 60px !important; padding: 8px !important; font-size: 0.8rem !important; background: var(--neon-blue); color: white; border-radius: 8px; margin:0 !important; font-weight: 600;">Ekle</button>
+                        <input type="text" id="${setsId}" placeholder="${t.placeholder_sets_ex}" style="flex-grow: 1; padding: 8px !important; font-size: 0.8rem !important; margin: 0 !important;">
+                        <button type="button" onclick="addExerciseToPlan('${day}')" style="width: 60px !important; padding: 8px !important; font-size: 0.8rem !important; background: var(--neon-blue); color: white; border-radius: 8px; margin:0 !important; font-weight: 600;">${t.btn_add_ex}</button>
                     </div>
                 `;
                 
@@ -2344,7 +2357,7 @@
             ).slice(0, 10);
             
             if (filtered.length === 0) {
-                suggestionsDiv.innerHTML = `<div style="padding: 8px; font-size: 0.8rem; color: var(--text-muted);">Egzersiz bulunamadı.</div>`;
+                suggestionsDiv.innerHTML = `<div style="padding: 8px; font-size: 0.8rem; color: var(--text-muted);">${TRANSLATIONS[currentLang].ex_not_found}</div>`;
             } else {
                 suggestionsDiv.innerHTML = filtered.map(ex => {
                     const primaryMuscle = ex.primaryMuscles ? ex.primaryMuscles.join(', ') : '';
@@ -2556,6 +2569,286 @@
             if (modal) modal.style.display = "none";
         }
 
+        // --- DİL VE ÇEVİRİ DESTEĞİ ---
+        const TRANSLATIONS = {
+            tr: {
+                nav_assistant: "Asistan",
+                nav_daily: "Günlük",
+                nav_limits: "Limitler",
+                nav_workout: "Spor",
+                nav_settings: "Ayarlar",
+                
+                title_assistant: "Kişisel AI Asistanı",
+                subtitle_assistant: "Hayatınızı düzenleyin, hedeflerinizi takip edin ve bilgisayarınızı kontrol edin.",
+                placeholder_assistant: "Metin girin veya konuşun...",
+                btn_send: "Gönder",
+                btn_voice: "🎤 Ses Kaydet",
+                btn_voice_recording: "🔴 Kaydediliyor... Durdurmak için tıklayın",
+                status_ready: "Sistem hazır.",
+                watcher_title: "Bildirim Gözcüsü",
+                empty_notifications: "Henüz bildirim alınmadı.",
+                
+                title_daily_habits: "Günün Alışkanlıkları",
+                title_daily_logs: "Bugünkü Yemekler ve Aktivite Logları",
+                daily_progress_label: "Günlük İlerleme",
+                empty_logs: "Bugün henüz bir kayıt girilmemiş.",
+                
+                title_limits: "Haftalık Beslenme Limitleri",
+                subtitle_limits: "Günlük kalori ve protein limitlerinizi planlayın.",
+                header_limits: "Haftalık Beslenme Limitleri",
+                header_curriculum: "Ders Çalışma Müfredatı",
+                placeholder_subject: "Yeni Ders Adı (örn: Matematik)",
+                btn_add_subject: "Ders Ekle",
+                
+                title_workout: "Haftalık Spor Planı",
+                subtitle_workout: "Haftalık antrenman hareketlerinizi planlayın, görselleri ve video anlatımlarını izleyin.",
+                empty_workouts: "Spor planı yükleniyor...",
+                
+                title_settings: "Sistem Ayarları",
+                subtitle_settings: "Bağlantı ve entegrasyon ayarlarını yönetin.",
+                label_server_url: "FastAPI Sunucu URL (Render veya Yerel IP):",
+                label_gemini_key: "Google Gemini API Key (Cihazınızda Çalışır):",
+                title_github_settings: "Kişisel GitHub Kasası Ayarları",
+                subtitle_github: "Kendi Obsidian verilerinizi kaydetmek için doldurun. Boş bırakılırsa varsayılan depo kullanılır.",
+                label_github_token: "GitHub Personal Access Token:",
+                label_github_owner: "GitHub Kullanıcı Adı (Owner):",
+                label_github_repo: "GitHub Depo Adı (Repo):",
+                title_habit_settings: "Alışkanlık Takipçisi Ayarları",
+                label_habit_list: "Alışkanlık Listeniz (virgülle ayırarak girin):",
+                label_lang: "Dil seçin / Select language:",
+                btn_save_settings: "Bağlantıyı Kaydet ve Yeniden Başlat",
+                
+                modal_edit_title: "Kaydı Düzenle",
+                modal_weight: "Miktar / Ağırlık (gram):",
+                modal_cancel: "Vazgeç",
+                modal_save: "Kaydet",
+                
+                modal_delete_title: "Kaydı Sil",
+                modal_delete_confirm: "Evet, Sil",
+                
+                modal_ex_title: "Egzersiz Detayı",
+                modal_ex_muscles: "Hedef Kaslar:",
+                modal_ex_equipment: "Ekipman:",
+                modal_ex_instructions: "Yapılışı:",
+                modal_ex_close: "Kapat",
+                modal_ex_video: "Video İzle",
+                
+                days: {
+                    "Pazartesi": "Pazartesi",
+                    "Salı": "Salı",
+                    "Çarşamba": "Çarşamba",
+                    "Perşembe": "Perşembe",
+                    "Cuma": "Cuma",
+                    "Cumartesi": "Cumartesi",
+                    "Pazar": "Pazar"
+                },
+                
+                rest_day: "Dinlenme Günü",
+                no_workout_planned: "Bu gün için planlanan egzersiz yok (Dinlenme).",
+                add_exercise_title: "Egzersiz Ekle",
+                placeholder_search_ex: "Egzersiz Ara...",
+                placeholder_sets_ex: "Set / Tekrar (örn: 3x12)",
+                btn_add_ex: "Ekle",
+                ex_not_found: "Veritabanında bulunamadı.",
+                no_ex_desc: "Bu hareket için açıklama bulunamadı.",
+                loading_img: "Görsel yükleniyor...",
+                no_img: "Görsel yok."
+            },
+            en: {
+                nav_assistant: "Assistant",
+                nav_daily: "Daily",
+                nav_limits: "Limits",
+                nav_workout: "Workout",
+                nav_settings: "Settings",
+                
+                title_assistant: "Personal AI Assistant",
+                subtitle_assistant: "Organize your life, track your goals, and control your computer.",
+                placeholder_assistant: "Type a message or speak...",
+                btn_send: "Send",
+                btn_voice: "🎤 Record Voice",
+                btn_voice_recording: "🔴 Recording... Click to stop",
+                status_ready: "System ready.",
+                watcher_title: "Notification Watcher",
+                empty_notifications: "No notifications received yet.",
+                
+                title_daily_habits: "Daily Habits",
+                title_daily_logs: "Today's Food and Activity Logs",
+                daily_progress_label: "Daily Progress",
+                empty_logs: "No logs entered today.",
+                
+                title_limits: "Weekly Nutrition Limits",
+                subtitle_limits: "Plan your daily calorie and protein limits.",
+                header_limits: "Weekly Nutrition Limits",
+                header_curriculum: "Study Curriculum",
+                placeholder_subject: "New Subject Name (e.g., Math)",
+                btn_add_subject: "Add Subject",
+                
+                title_workout: "Weekly Workout Plan",
+                subtitle_workout: "Plan your weekly workouts, view animated illustrations, and watch video tutorials.",
+                empty_workouts: "Loading workout plan...",
+                
+                title_settings: "System Settings",
+                subtitle_settings: "Manage connection and integration settings.",
+                label_server_url: "FastAPI Server URL (Render or Local IP):",
+                label_gemini_key: "Google Gemini API Key (Runs on device):",
+                title_github_settings: "Personal GitHub Vault Settings",
+                subtitle_github: "Fill to save your own Obsidian data. If left blank, the default server repository is used.",
+                label_github_token: "GitHub Personal Access Token:",
+                label_github_owner: "GitHub Username (Owner):",
+                label_github_repo: "GitHub Repository Name (Repo):",
+                title_habit_settings: "Habit Tracker Settings",
+                label_habit_list: "Your Habit List (comma separated):",
+                label_lang: "Select language:",
+                btn_save_settings: "Save Connection & Restart",
+                
+                modal_edit_title: "Edit Log",
+                modal_weight: "Amount / Weight (grams):",
+                modal_cancel: "Cancel",
+                modal_save: "Save",
+                
+                modal_delete_title: "Delete Log",
+                modal_delete_confirm: "Yes, Delete",
+                
+                modal_ex_title: "Exercise Details",
+                modal_ex_muscles: "Target Muscles:",
+                modal_ex_equipment: "Equipment:",
+                modal_ex_instructions: "Instructions:",
+                modal_ex_close: "Close",
+                modal_ex_video: "Watch Video",
+                
+                days: {
+                    "Pazartesi": "Monday",
+                    "Salı": "Tuesday",
+                    "Çarşamba": "Wednesday",
+                    "Perşembe": "Thursday",
+                    "Cuma": "Friday",
+                    "Cumartesi": "Saturday",
+                    "Pazar": "Sunday"
+                },
+                
+                rest_day: "Rest Day",
+                no_workout_planned: "No exercises planned for this day (Rest).",
+                add_exercise_title: "Add Exercise",
+                placeholder_search_ex: "Search Exercise...",
+                placeholder_sets_ex: "Sets / Reps (e.g., 3x12)",
+                btn_add_ex: "Add",
+                ex_not_found: "Not found in database.",
+                no_ex_desc: "No description found for this exercise.",
+                loading_img: "Loading image...",
+                no_img: "No image."
+            }
+        };
+
+        let currentLang = localStorage.getItem('language') || 'tr';
+
+        function applyLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('language', lang);
+            
+            const t = TRANSLATIONS[lang];
+            
+            // Language Select dropdown value
+            const selectEl = document.getElementById('languageSelect');
+            if (selectEl) selectEl.value = lang;
+            
+            // Bottom Nav
+            document.querySelector('#btn-nav-asistan span').innerText = t.nav_assistant;
+            document.querySelector('#btn-nav-gunluk span').innerText = t.nav_daily;
+            document.querySelector('#btn-nav-limitler span').innerText = t.nav_limits;
+            document.querySelector('#btn-nav-spor span').innerText = t.nav_workout;
+            document.querySelector('#btn-nav-ayarlar span').innerText = t.nav_settings;
+            
+            // Assistant Tab
+            document.querySelector('#tab-asistan h1').innerText = t.title_assistant;
+            document.querySelector('#tab-asistan .subtitle').innerText = t.subtitle_assistant;
+            document.getElementById('textInput').placeholder = t.placeholder_assistant;
+            document.getElementById('btn-gonder').innerText = t.btn_send;
+            
+            const btnSes = document.getElementById('btn-ses');
+            if (btnSes && !btnSes.classList.contains('recording')) {
+                btnSes.innerText = t.btn_voice;
+            }
+            
+            const statusMsg = document.getElementById('statusMsg');
+            if (statusMsg && (statusMsg.innerText.includes("Sistem hazır") || statusMsg.innerText.includes("System ready"))) {
+                statusMsg.innerText = t.status_ready;
+            }
+            
+            document.querySelector('#tab-asistan .notification-card h2').innerText = t.watcher_title;
+            const emptyNotif = document.getElementById('emptyNotif');
+            if (emptyNotif) emptyNotif.innerText = t.empty_notifications;
+            
+            // Daily Tab
+            document.getElementById('dailyProgressLabel').innerText = t.daily_progress_label;
+            document.querySelectorAll('#tab-gunluk .progress-title')[0].innerText = t.title_daily_habits;
+            document.querySelectorAll('#tab-gunluk .progress-title')[1].innerText = t.title_daily_logs;
+            
+            // Limits Tab
+            document.querySelector('#tab-limitler h1').innerText = t.title_limits;
+            document.querySelector('#tab-limitler .subtitle').innerText = t.subtitle_limits;
+            
+            const accordionHeaders = document.querySelectorAll('#tab-limitler .accordion-header .accordion-title');
+            if (accordionHeaders.length >= 2) {
+                accordionHeaders[0].innerText = t.header_limits;
+                accordionHeaders[1].innerText = t.header_curriculum;
+            }
+            
+            document.getElementById('newSubjectNameInput').placeholder = t.placeholder_subject;
+            document.querySelector('.study-add-subject-form button').innerText = t.btn_add_subject;
+            
+            // Workout Tab
+            document.querySelector('#tab-spor h1').innerText = t.title_workout;
+            document.querySelector('#tab-spor .subtitle').innerText = t.subtitle_workout;
+            
+            // Settings Tab
+            document.querySelector('#tab-ayarlar h1').innerText = t.title_settings;
+            document.querySelector('#tab-ayarlar .subtitle').innerText = t.subtitle_settings;
+            document.querySelectorAll('#tab-ayarlar .settings-panel h3')[0].previousElementSibling.previousElementSibling.innerText = t.label_server_url;
+            document.querySelectorAll('#tab-ayarlar .settings-panel h3')[0].previousElementSibling.innerText = t.label_gemini_key;
+            document.querySelectorAll('#tab-ayarlar .settings-panel h3')[0].innerText = t.title_github_settings;
+            document.querySelectorAll('#tab-ayarlar .settings-panel h3')[0].nextElementSibling.innerText = t.subtitle_github;
+            
+            document.querySelector('label[for="githubTokenInput"]').innerText = t.label_github_token;
+            document.querySelector('label[for="githubOwnerInput"]').innerText = t.label_github_owner;
+            document.querySelector('label[for="githubRepoInput"]').innerText = t.label_github_repo;
+            
+            document.querySelectorAll('#tab-ayarlar .settings-panel h3')[1].innerText = t.title_habit_settings;
+            document.querySelector('label[for="habitListInput"]').innerText = t.label_habit_list;
+            document.querySelector('label[for="languageSelect"]').innerText = t.label_lang;
+            document.querySelector('#tab-ayarlar .settings-panel button').innerText = t.btn_save_settings;
+            
+            // Modals text
+            document.getElementById('editModalTitle').innerText = t.modal_edit_title;
+            document.querySelector('label[for="editWeightInput"]').innerText = t.modal_weight;
+            document.querySelector('#editModal .cancel').innerText = t.modal_cancel;
+            document.querySelector('#editModal .save').innerText = t.modal_save;
+            
+            document.querySelector('#deleteModal .edit-modal-title').innerText = t.modal_delete_title;
+            document.querySelector('#deleteModal .cancel').innerText = t.modal_cancel;
+            document.querySelector('#deleteModal .save').innerText = t.modal_delete_confirm;
+            
+            document.getElementById('exerciseModalTitle').innerText = t.modal_ex_title;
+            document.querySelector('#exerciseModal strong[style*="Hedef Kaslar"]').innerText = t.modal_ex_muscles;
+            document.querySelector('#exerciseModal strong[style*="Ekipman"]').innerText = t.modal_ex_equipment;
+            document.querySelector('#exerciseModal strong[style*="Yapılışı"]').innerText = t.modal_ex_instructions;
+            document.querySelector('#exerciseModal .cancel').innerText = t.modal_ex_close;
+            const youtubeBtn = document.getElementById('exerciseYoutubeBtn');
+            if (youtubeBtn) {
+                youtubeBtn.innerHTML = youtubeBtn.querySelector('svg').outerHTML + ' ' + t.modal_ex_video;
+            }
+            
+            // Re-render components with translated dynamic strings
+            updateProgressUI();
+            renderFoodList();
+            renderHabits();
+            renderMufredatBuilder();
+            renderSporPlan();
+        }
+
+        async function changeLanguage(lang) {
+            applyLanguage(lang);
+        }
+
         // --- HAFTALIK LİMİTLER BULUT SENKRONİZASYONU ---
         function parseWeeklyLimitsFromHedefler(content) {
             const limits = {};
@@ -2699,7 +2992,16 @@
             // İlerleme kartının başlığını güncelle (örn: Bugün (Perşembe))
             const progressCardTitle = document.getElementById('progressCardTitle');
             if (progressCardTitle) {
-                progressCardTitle.innerText = `Bugün (${DAY_LABELS[todayKey]})`;
+                const trDays = {
+                    "mon": "Pazartesi", "tue": "Salı", "wed": "Çarşamba", 
+                    "thu": "Perşembe", "fri": "Cuma", "sat": "Cumartesi", "sun": "Pazar"
+                };
+                const enDays = {
+                    "mon": "Monday", "tue": "Tuesday", "wed": "Wednesday", 
+                    "thu": "Thursday", "fri": "Friday", "sat": "Saturday", "sun": "Sunday"
+                };
+                const dayLabel = currentLang === 'tr' ? trDays[todayKey] : enDays[todayKey];
+                progressCardTitle.innerText = currentLang === 'tr' ? `Bugün (${dayLabel})` : `Today (${dayLabel})`;
             }
             
             let totalCal = 0;
