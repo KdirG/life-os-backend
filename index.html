@@ -1579,7 +1579,7 @@
             document.getElementById('githubOwnerInput').value = localStorage.getItem('github_owner') || "";
             document.getElementById('githubRepoInput').value = localStorage.getItem('github_repo') || "";
 
-            // Haftalık limitleri form alanlarına doldur
+            // Haftalık limitleri form alanlarına doldur (yerel önbellek)
             const weeklyLimits = JSON.parse(localStorage.getItem('weekly_limits') || '{}');
             DAYS_LIST.forEach(d => {
                 const calEl = document.getElementById(`limit-${d}-cal`);
@@ -1587,6 +1587,8 @@
                 if (calEl) calEl.value = weeklyLimits[d]?.calories || 2000;
                 if (protEl) protEl.value = weeklyLimits[d]?.protein || 140;
             });
+            // Buluttan en güncel limitleri çek
+            loadWeeklyLimits();
 
             // Müfredat içeriğini yükle ve GUI planlayıcıyı doldur
             loadMufredatBuilder();
@@ -1640,7 +1642,7 @@
         }
 
         // Ayarları Kaydet
-        function saveSettings() {
+        async function saveSettings() {
             let inputVal = backendUrlInput.value.trim();
             const geminiKeyVal = geminiApiKeyInput.value.trim();
             const habitVal = document.getElementById('habitListInput').value.trim();
@@ -1672,6 +1674,11 @@
                 newWeeklyLimits[d] = { calories: calVal, protein: protVal };
             });
             localStorage.setItem('weekly_limits', JSON.stringify(newWeeklyLimits));
+            
+            statusMsg.innerText = "Ayarlar kaydediliyor...";
+            
+            // Limitleri GitHub deposuna (Hedefler.md) yükle
+            await saveWeeklyLimitsToGitHub(newWeeklyLimits);
             
             statusMsg.innerText = "Ayarlar kaydedildi. Yeniden başlatılıyor...";
             
@@ -2539,6 +2546,87 @@
             }
             const modal = document.getElementById('exerciseModal');
             if (modal) modal.style.display = "none";
+        }
+
+        // --- HAFTALIK LİMİTLER BULUT SENKRONİZASYONU ---
+        function parseWeeklyLimitsFromHedefler(content) {
+            const limits = {};
+            const daysEng = {
+                "pazartesi": "mon", "salı": "tue", "çarşamba": "wed", 
+                "perşembe": "thu", "cuma": "fri", "cumartesi": "sat", "pazar": "sun"
+            };
+            
+            const lines = content.split('\n');
+            for (let line of lines) {
+                const match = line.match(/^\s*-\s*([^:]+):\s*(\d+)\s*kcal\s*\|\s*(\d+)g\s*protein/i);
+                if (match) {
+                    const dayTr = match[1].trim().toLowerCase();
+                    const calories = parseInt(match[2]);
+                    const protein = parseInt(match[3]);
+                    const dayEng = daysEng[dayTr];
+                    if (dayEng) {
+                        limits[dayEng] = { calories, protein };
+                    }
+                }
+            }
+            return limits;
+        }
+
+        function serializeWeeklyLimitsToHedefler(limits) {
+            const days = [
+                { tr: "Pazartesi", eng: "mon" },
+                { tr: "Salı", eng: "tue" },
+                { tr: "Çarşamba", eng: "wed" },
+                { tr: "Perşembe", eng: "thu" },
+                { tr: "Cuma", eng: "fri" },
+                { tr: "Cumartesi", eng: "sat" },
+                { tr: "Pazar", eng: "sun" }
+            ];
+            
+            let md = "# Hedefler\n\n## Haftalık Limitler\n";
+            for (let day of days) {
+                const lim = limits[day.eng] || { calories: 2000, protein: 140 };
+                md += `- ${day.tr}: ${lim.calories} kcal | ${lim.protein}g protein\n`;
+            }
+            return md;
+        }
+
+        async function loadWeeklyLimits() {
+            try {
+                const data = await fetchJson(`${BACKEND_URL}/api/file/Hedefler.md`);
+                if (data && data.content && data.content.trim()) {
+                    const limits = parseWeeklyLimitsFromHedefler(data.content);
+                    if (Object.keys(limits).length > 0) {
+                        localStorage.setItem('weekly_limits', JSON.stringify(limits));
+                        DAYS_LIST.forEach(d => {
+                            const calEl = document.getElementById(`limit-${d}-cal`);
+                            const protEl = document.getElementById(`limit-${d}-prot`);
+                            if (calEl && limits[d]) calEl.value = limits[d].calories;
+                            if (protEl && limits[d]) protEl.value = limits[d].protein;
+                        });
+                        updateProgressUI();
+                    }
+                }
+            } catch (err) {
+                console.error("Haftalık limitler buluttan yüklenemedi:", err);
+            }
+        }
+
+        async function saveWeeklyLimitsToGitHub(limits) {
+            const mdContent = serializeWeeklyLimitsToHedefler(limits);
+            try {
+                await fetchJson(`${BACKEND_URL}/api/file/Hedefler.md`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        content: mdContent,
+                        message: "Haftalık beslenme limitleri güncellendi"
+                    })
+                });
+                console.log("Haftalık limitler Hedefler.md'ye kaydedildi.");
+            } catch (err) {
+                console.error("Haftalık limitler buluta kaydedilemedi:", err);
+            }
         }
 
         // --- OBSIDIAN MARKDOWN PARSER & SYNC (TELEFON ÜZERİNDE) ---
